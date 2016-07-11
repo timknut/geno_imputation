@@ -34,3 +34,6 @@ vignettes/*.pdf
 
 # Do not git compresseed files. 
 *.gz
+
+# Ignore finalRreport files
+FinalReport*.txt
