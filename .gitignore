@@ -37,3 +37,4 @@ vignettes/*.pdf
 
 # Ignore finalRreport files
 FinalReport*.txt
+.Rproj.user
