@@ -4,5 +4,5 @@
 Be a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
 
 ## Rules
-* The rpository must be fully self contained, and the scripts must not rely on paths outside the base folder. 
+* The repository must be fully self contained, and the scripts must not rely on paths outside the `geno_imputation` folder. 
 
