@@ -1,0 +1,18 @@
+Hi tim
+
+So.......i'm trying to use this git XD
+
+
+I'm also trying to use the scripts to convert the data.......the first conversion worked fine i converted the file FinalReport_54kV2_ed1 
+I'm trying to convert another file now, the file FinalReport_54kV1_apr2009_ed1.txt but i'm receiving an error. I think it's something related to the map file (maybe not all the snps are present or there are more snps...the file reported in the final report is BovineSNPS50_B )...i will try to figure out what's happening during the meeting lol
+
+Paolo
+
+UPDATE: modification is needed to the script Prepare Plink map file. It works only with long format final report illumina.
+
+For matrix format change 
+grep '11190319_1210' FinalReport_54kV2_feb2011_ed1.txt | cut -f 1 > illumina54k_v2_markerlist.txt
+
+with (input_file MUST be in illuminamatrix format)
+
+cut -f1 input_file|tail -n +11 >output_file
