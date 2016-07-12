@@ -13,7 +13,9 @@ Welcome to the Geno Imputation github repository. We want this to b a common cod
 
 ## Rules
 1. Add a user specific `prefix` to all scripts that refer to programs or data outside the `geno_imputation` folder. 
+
 **Example:**
+
 ```sh
 prefix=/mnt/users/tikn/for_folk/geno #  Tim  
 #prefix=/some/Roslin/path #  Paolo 
