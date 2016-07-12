@@ -1,12 +1,12 @@
+# Geno imputation
+Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
+
 **Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
 
 - [Geno imputation](#)
 	- [Purpose of this reposiory](#)
 	- [Rules](#)
 	- [Pipeline](#)
-
-# Geno imputation
-Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
 
 ## Purpose of this reposiory
 **Our goal** is to write scripts that both document and does the convertion from Chip raw-data and imputation. We should be able to run the scripts regardless of if we are sitting in Ås or Edinburg.
