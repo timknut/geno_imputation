@@ -1,3 +1,10 @@
+**Table of Contents**  *generated with [DocToc](http://doctoc.herokuapp.com/)*
+
+- [Geno imputation](#)
+	- [Purpose of this reposiory](#)
+	- [Rules](#)
+	- [Pipeline](#)
+
 # Geno imputation
 Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
 
