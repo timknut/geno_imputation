@@ -26,5 +26,7 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 
 "$ioSNP" -i "$infile" -n Genomelist -o "$outfile" -u Plink
 ```
-## Pipeline
+# Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
+## Make plink map files.
+See [this markdown ](https://github.com/timknut/geno_imputation/blob/master/scripts/prepare_plink_map_example.md). We make one `Rmd` like this for every chip type. 
