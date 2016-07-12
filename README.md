@@ -6,7 +6,8 @@ Welcome to the Geno Imputation github repository. We want this to b a common cod
 - [Geno imputation](#)
 	- [Purpose of this reposiory](#)
 	- [Rules](#)
-	- [Pipeline](#)
+- [Pipeline](#)
+	- [Make plink map files.](#)
 
 ## Purpose of this reposiory
 **Our goal** is to write scripts that both document and does the convertion from Chip raw-data and imputation. We should be able to run the scripts regardless of if we are sitting in Ås or Edinburg.
