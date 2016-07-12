@@ -10,7 +10,7 @@
 # Usage: sh GenomeList_2_plink.sh [FinalReport file]
 
 prefix=/mnt/users/tikn/for_folk/geno # Guess we need to have two prefixes and uncomment based on who is using it. Tim  
-#prefix= # Guess we need to have two prefixes and uncomment based on who is using it. Paolo 
+prefix= /Users/paolo/Documents/Roslin/Geno_project/git_imputation/ # Guess we need to have two prefixes and uncomment based on who is using it. Paolo 
 
 infile=$1
 outfile=$(basename $1 .txt).ped 
