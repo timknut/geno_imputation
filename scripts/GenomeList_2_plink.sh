@@ -7,13 +7,13 @@
 display_usage() {
 	echo
 	echo -e "Script takes an illumina Finalreport in GenomeList format and outputs"
-	echo "a plink *.ped file automatically named [infile].ped. Convertion is done by calling"
+	echo "a plink *.ped file automatically named plink_format/[infile].ped. Convertion is done by calling"
 	echo "snptranslate present in this repo." 
 	echo -e "\nUsage: sh $0 [FinalReport file] \n"
 }	 
 
 # if less than two arguments supplied, display usage 
-if [  $# -le 1 ]
+if [  $# -eq 0 ]
 	then
 	display_usage
 	exit 1
@@ -28,13 +28,15 @@ fi
 
 prefix=/mnt/users/tikn/for_folk/geno # Tim  
 #prefix=/Users/paolo/Documents/Roslin/Geno_project/git_imputation/ # Paolo 
-
-infile=$1
-
-outfile=$(basename $1 .txt).ped 
 ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 
+infile=$1
+infiledir=$(dirname "$infile")
+mkdir -p ${infiledir}/plink_format
+outfile=${infiledir}/plink_format/$(basename $1 .txt).ped 
+outfile2=${infiledir}/plink_format/$(basename $1 .txt).map
+markerfile=${prefix}/geno_imputation/genotype_rawdata/marker_mapfiles/illumina54k_v2_annotationfile.map
 # Test outfile
-echo "Writing $outfile" 
+echo "Writing $outfile and $outfile2" 
 
-"$ioSNP" -i "$infile" -n Genomelist -o "$outfile" -u Plink
+"$ioSNP" -i "$infile" -n Genomelist -o "$outfile" -u Plink --output2 $outfile2 -m $markerfile
