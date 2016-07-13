@@ -9,9 +9,9 @@ set -o errexit   # Exit if error occurs
 # Add simple usage instructions. 
 display_usage() {
 	echo
-	echo -e "Script takes an illumina Finalreport in GenomeList format and outputs"
-	echo "a plink *.ped file automatically named plink_format/[infile].ped. Convertion is done by calling"
-	echo "snptranslate present in this repo." 
+	echo -e "Script takes an illumina Finalreport in GenomeList or Genomematrix format and outputs"
+	echo "a plink *.ped and *.map file automatically named plink_format/[infile].ped/map"
+	echo "Convertion is done by calling snptranslate present in this repo." 
 	echo -e "\nUsage: sh $0 [FinalReport file] [input-format](Genomelist or Genomematrix) [markerfile] \n"
 }	 
 
