@@ -1,0 +1,44 @@
+---
+title: "Convert multiple genotype files into plink format using snptranslate"
+author: "Paolo Gottardo"
+date: "13 7 2016"
+---
+
+**Note**
+* The genotype files MUST have the same format
+* This script doesn't work on Windows machines. It works on both Linux and Mac OS
+* You can generate the .map file using prepare_plink_map_example.Rmd script 
+
+### Remove files format from the file name (if you don't have a format skip this part)
+
+**Example**
+In this example i am using a .txt format. You can remove any kind of format from the filename.
+
+```bash
+for file in `ls *.txt`
+do
+newname=`echo $file|sed 's/\.txt$//g'`
+mv $file $newname
+done
+```
+
+### Create a loop in order to run snptranslate for all the files in the directory
+Go into the folder where the files are and run the script. 
+```bash
+#!/bin/bash
+#create a variable with the path to the directory where the files are. NOTE: no / at the end of the path
+dir='...path/...to/...the/...dir/...containing/...files'
+#create another variable  with the patch to the directory where the program snptranslate (and all the dependencies) are.
+dir1='...path/...to/...the/...dir/...containing/...program/'
+
+#run the loop
+for FILE in "$dir"/*;do
+cp ${FILE##*/} ${dir1}
+cd ${dir1}
+   ./ioSNP.py -i ${FILE##*/} -n FORMAT-OF-THE-FILE -o ${FILE##*/}.ped -u Plink -m marker.map
+   rm ${FILE##*/}
+cd -
+done
+
+```
+* The Plink files are located in ${dir1} directory. The name of each file is equal to the original name plus .ped Plink format format.
