@@ -16,6 +16,7 @@
 
 # RStudio files
 .Rproj.user/
+*.Rproj
 
 # produced vignettes
 vignettes/*.html
@@ -37,4 +38,6 @@ vignettes/*.pdf
 
 # Ignore finalRreport files
 FinalReport*.txt
-.Rproj.user
+
+# rawdata
+genotype_rawdata/
