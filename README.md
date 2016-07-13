@@ -33,13 +33,16 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 # Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
 ## Make plink map files.
-See [this markdown ](https://github.com/timknut/geno_imputation/blob/master/scripts/prepare_plink_map_example.md). We make one `Rmd` like this for every chip type.
+
+### Convert annotation file to map file accepted by ioSNP.py
 
 **UPDATE** 
-Paolo #1 hinted that ioSNP.py will create the plink map file, which is a better solution. 
-Convert annotation file to map file accepted by ioSNP.py
+ioSNP.py will create the plink map file, which is a better solution than doing it in R.  
 
 ```sh
 awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > illumina54k_v2_annotationfile.map
 ```
+
+### R solution:
+See [this markdown ](https://github.com/timknut/geno_imputation/blob/master/scripts/prepare_plink_map_example.md). We could make one `Rmd` like this for every chip type.
 
