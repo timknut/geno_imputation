@@ -19,7 +19,6 @@ Welcome to the Geno Imputation github repository. We want this to b a common cod
 1. Add a user specific `prefix` to all scripts that refer to programs or data outside the `geno_imputation` folder. 
 
 **Example:**
-
 ```sh
 prefix=/mnt/users/tikn/for_folk/geno #  Tim  
 #prefix=/some/Roslin/path #  Paolo 
@@ -32,17 +31,38 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 ```
 # Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
-## Make plink map files.
+## Common folder tree
+Look like this in Tims local repo, as of july 14. 2016.
+```sh
+tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
+.
+├── affymetrix_54k
+│   └── plink_format
+├── illumina25k
+│   └── plink_format
+├── illumina54k_v1
+│   └── plink_format
+├── illumina54k_v2
+│   ├── collection_Genomematrix_files
+│   │   └── plink_format
+│   └── plink_format
+├── illumina777k
+│   └── plink_format
+├── marker_mapfiles
+└── summarize_rawdata
+    ├── collection2
+    └── edited_FinalReport_54kV2_collection_ed1
 
+16 directories
+
+```
+## Prepare marker map files.  
+ioSNP.py will create the plink map file, which is a better solution than doing it manually in R. 
 ### Convert annotation file to map file accepted by ioSNP.py
-
-**UPDATE** 
-ioSNP.py will create the plink map file, which is a better solution than doing it in R.  
-
+Annotation files can be [downloaded from SNPchimp](http://bioinformatics.tecnoparco.org/SNPchimp/index.php/download/download-cow-data)
+After `gunzipping`, something like the following creates the .map annotation file needed. 
 ```sh
 awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > illumina54k_v2_annotationfile.map
 ```
-
-### R solution:
-See [this markdown ](https://github.com/timknut/geno_imputation/blob/master/scripts/prepare_plink_map_example.md). We could make one `Rmd` like this for every chip type.
-
+## Convert raw-data.
+Describe convertion workflow.
