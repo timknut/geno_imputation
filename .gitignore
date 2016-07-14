@@ -41,3 +41,4 @@ FinalReport*.txt
 
 # rawdata
 genotype_rawdata/
+.Rproj.user
