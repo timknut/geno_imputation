@@ -65,4 +65,15 @@ After `gunzipping`, something like the following creates the .map annotation fil
 awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > illumina54k_v2_annotationfile.map
 ```
 ## Convert raw-data.
-Describe convertion workflow.
+1. Describe convertion workflow and location of scripts.
+2. Define file structure for converted data.
+
+## QC of converted raw data **before** imputation. 
+### Suggestions for filtering:
+* Missingess per animal. 90 % 
+* Missingness per SNP 95 %
+* HWE p < 1e-7
+* Mendelian error filtering per SNP and animal. (Although AlphaImpute do a good job at this.)
+* Heterozygosity per animal
+
+## Documentation and scripts for imputation.
