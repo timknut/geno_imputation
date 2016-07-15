@@ -74,6 +74,10 @@ awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > ill
 ```
 ## Convert raw-data.
 1. Describe convertion workflow and location of scripts.
+### Affymetrix 55K
+Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py
+
+usage: `seqreport.py -m genotype_rawdata/marker_mapfiles/affy50k_annotation_final_list_20160715.txt -r [dummy reportfilename] -o outfile_semi.ped [Affy .call file]`
 2. Define file structure for converted data.
 
 ## QC of converted raw data **before** imputation. 
