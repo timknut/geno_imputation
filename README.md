@@ -1,13 +1,21 @@
 Table of Contents
 =================
 
+  * [Table of Contents](#table-of-contents)
   * [Geno imputation](#geno-imputation)
     * [Purpose of this reposiory](#purpose-of-this-reposiory)
     * [Rules](#rules)
   * [Pipeline](#pipeline)
-    * [Make plink map files.](#make-plink-map-files)
+    * [Common folder tree](#common-folder-tree)
+    * [Prepare marker map files.](#prepare-marker-map-files)
+      * [Convert annotation file to map file accepted by ioSNP.py](#convert-annotation-file-to-map-file-accepted-by-iosnppy)
+    * [Convert raw-data.](#convert-raw-data)
+    * [QC of converted raw data <strong>before</strong> imputation.](#qc-of-converted-raw-data-before-imputation)
+      * [Suggestions for filtering:](#suggestions-for-filtering)
+    * [Documentation and scripts for imputation.](#documentation-and-scripts-for-imputation)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 
 # Geno imputation
 Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
@@ -65,4 +73,19 @@ After `gunzipping`, something like the following creates the .map annotation fil
 awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > illumina54k_v2_annotationfile.map
 ```
 ## Convert raw-data.
-Describe convertion workflow.
+1. Describe convertion workflow and location of scripts.
+### Affymetrix 55K
+Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py
+
+usage: `seqreport.py -m genotype_rawdata/marker_mapfiles/affy50k_annotation_final_list_20160715.txt -r [dummy reportfilename] -o outfile_semi.ped [Affy .call file]`
+2. Define file structure for converted data.
+
+## QC of converted raw data **before** imputation. 
+### Suggestions for filtering:
+* Missingess per animal. 90 % 
+* Missingness per SNP 95 %
+* HWE p < 1e-7
+* Mendelian error filtering per SNP and animal. (Although AlphaImpute do a good job at this.)
+* Heterozygosity per animal
+
+## Documentation and scripts for imputation.
