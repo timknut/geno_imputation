@@ -10,11 +10,13 @@ Table of Contents
     * [Prepare marker map files.](#prepare-marker-map-files)
       * [Convert annotation file to map file accepted by ioSNP.py](#convert-annotation-file-to-map-file-accepted-by-iosnppy)
     * [Convert raw-data.](#convert-raw-data)
+      * [Affymetrix 55K](#affymetrix-55k)
     * [QC of converted raw data <strong>before</strong> imputation.](#qc-of-converted-raw-data-before-imputation)
       * [Suggestions for filtering:](#suggestions-for-filtering)
     * [Documentation and scripts for imputation.](#documentation-and-scripts-for-imputation)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 
 
 # Geno imputation
