@@ -1,13 +1,21 @@
 Table of Contents
 =================
 
+  * [Table of Contents](#table-of-contents)
   * [Geno imputation](#geno-imputation)
     * [Purpose of this reposiory](#purpose-of-this-reposiory)
     * [Rules](#rules)
   * [Pipeline](#pipeline)
-    * [Make plink map files.](#make-plink-map-files)
+    * [Common folder tree](#common-folder-tree)
+    * [Prepare marker map files.](#prepare-marker-map-files)
+      * [Convert annotation file to map file accepted by ioSNP.py](#convert-annotation-file-to-map-file-accepted-by-iosnppy)
+    * [Convert raw-data.](#convert-raw-data)
+    * [QC of converted raw data <strong>before</strong> imputation.](#qc-of-converted-raw-data-before-imputation)
+      * [Suggestions for filtering:](#suggestions-for-filtering)
+    * [Documentation and scripts for imputation.](#documentation-and-scripts-for-imputation)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
+
 
 # Geno imputation
 Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
