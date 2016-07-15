@@ -74,6 +74,7 @@ awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > ill
 ```
 ## Convert raw-data.
 1. Describe convertion workflow and location of scripts.
+
 ### Affymetrix 55K
 Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py
 
