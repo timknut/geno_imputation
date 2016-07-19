@@ -55,7 +55,7 @@ done < ${filename1}
  elif [[ $((100*counter/(counter_total - counter_miss))) -ge 95 && $((100*counter/(counter_total - counter_miss))) -lt 100 ]] ; then
  echo " There are some discordances.......this suggests that your annotation file contains some mistakes....check it an re-run the script"
  elif [[ $((100*counter/(counter_total - counter_miss))) -lt 95 ]] ; then
- echo " The error rate suggests that your file is not a TOP format Illumina file. Contatc your laboratory for more info"
+ echo " The error rate suggests that your file is not a TOP format Illumina file. Contact your laboratory for more info"
  else
  exit
   fi
