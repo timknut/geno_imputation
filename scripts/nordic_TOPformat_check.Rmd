@@ -38,7 +38,7 @@ if [ $(grep -m 1 "$snpname" ${filename}| cut -f3) == $( grep -m 1 "$snpname" ${f
 echo "I'm counting it"
 ((counter++))
 else
-echo "ATTENTION Incompatibility found the file could not be in TOP format....."
+echo "ATTENTION Incompatibility found the file could not be in TOP format or the alleles are not coded into ATCG format"
 fi
 else
 echo "Snp name not found in this file, deleting it from the calculation"
