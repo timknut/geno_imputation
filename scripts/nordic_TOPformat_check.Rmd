@@ -11,8 +11,8 @@ date: "19 7 2016"
 * Is not efficient at all....if you have a better alternative use it XD
 
 ### Files needed
-* file to check. This script works on Illumina long format without headers files......further implementations are needed in order to work with the other Illumina/Affymetrix format files 
-* list of the Snps to check. This list is a 2 columns. The first column is the name of the SNP and the second column is the allele TOP used. You can download the file with this informations from http://bioinformatics.tecnoparco.org/SNPchimp/index.php/download
+* File to check. This script works on Illumina long format without headers files......further implementations are needed in order to work with the other Illumina/Affymetrix format files 
+* List of the Snps to check. This list is a 2 columns. The first column is the name of the SNP and the second column is the allele TOP used. You can download the file with this informations from http://bioinformatics.tecnoparco.org/SNPchimp/index.php/download
 
 ```bash
 #!/bin/bash
