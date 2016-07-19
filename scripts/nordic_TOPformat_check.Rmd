@@ -8,6 +8,7 @@ date: "19 7 2016"
 * The genotype files are Nordic format (Illumina long format but without header)
 * This script doesn't work on Windows machines. It works on both Linux and Mac OS
 * You must have a list of SNPs to check 
+* Is not efficient at all....if you have a better alternative use it XD
 
 ### Files needed
 * file to check. This script works on Illumina long format without headers files......further implementations are needed in order to work with the other Illumina/Affymetrix format files 
