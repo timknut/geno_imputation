@@ -1,0 +1,32 @@
+---
+title: "Script to format the .raw data (from PLINK) to alphaimpute format ready for the imputation"
+author: "Paolo Gottardo"
+date: "24 8 2016"
+---
+
+**Note**
+* This script doesn't work on Windows machines. It works on both Linux and Mac OS.
+
+* You will need the .raw files (one per chromosome)
+
+```bash
+#!/bin/bash
+
+for i in {1..29} ; do
+	tail -n +2 chr${i}.raw > file_flipped
+	cut -f 7- -d ' ' file_flipped > SNPs
+	cut -f2 -d ' ' file_flipped > ID
+	sed -i -e "s/[[:<:]]NA[[:>:]]/9/g" SNPs
+	paste -d ' ' ID SNPs > ch${i}_coded
+	rm ID SNPs file_flipped SNPs-e
+done
+
+```
+
+
+### Explanation
+
+The script will produce :
+
+* 29 files (the sexual chromosomes are not included) ready for the Imputation. You can use these files in the script mask_genotypes.
+* The missing values are coded as 9. The files are space delimited file.
