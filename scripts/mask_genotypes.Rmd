@@ -1,0 +1,251 @@
+---
+title: "Script for genotype masking"
+author: "Paolo Gottardo"
+date: "24 8 2016"
+---
+
+**Note**
+* The script has 2 options: Option 1 creates the files necessary in option 2. Run option 1 just once.
+* This script doesn't work on Windows machines. It works on both Linux and Mac OS.
+
+* You will need a file with ID in the first column followed by the genotype (use the script plink2_alphaimpute to make it).
+* You will need X files (where X is the number of SNPS arrays you have) with the ID of the animals in that specific array (first column). You can generate them easily using shell bash or R.
+* You will need a file containing a list of SNPs in common between all the SNPS arrays. Rename this file snps_not_mask.  Check the script snp_not_mask.R for more info.
+* The script is designed to mask only one animal but an easy modification can be made in order to mask more animals in one run.
+* The script will ask you if you want to mask a percentage of SNPS. If the answer is YES put a percentage, otherwise the script will mask 10 SNPS by default.
+
+
+```bash
+#!/bin/bash
+
+#1. File contenente il nome degli snps nel file finale usato per il merge. Importante pechè contiene l'esatto ordine in cui sono messi gli snps. 1 per cromosoma
+echo " Do you want to generate the files with the SNPS names/position from the .raw chromosome? SKIP THIS PART IF YOU ALREADY HAVE THE FILES. NOte you will need to rerun the program if YES is supplied
+        1. YES DO IT!!!
+        2. SKIP AND MASK THE BLOODY THING
+        "
+read start
+
+if [[ $start -eq 1 ]]; then
+
+for i in {1..29}; do 
+head -1 chr${i}_coded > tmp
+cut -d " " -f 2- tmp > tmp1
+awk '
+{ 
+    for (i=1; i<=NF; i++)  {
+        a[NR,i] = $i
+    }
+}
+NF>p { p = NF }
+END {    
+    for(j=1; j<=p; j++) {
+        str=a[1,j]
+        for(i=2; i<=NR; i++){
+            str=str" "a[i,j];
+        }
+        print str
+    }
+}' tmp1 > tmp2
+
+while read -r line; do echo ${line:0:(${#line}-2)}; done<tmp2 > temp${i} 
+a=`wc -l < temp${i} `
+seq 1 1 $a > b 
+paste -d ' ' temp${i} b > snps_ch${i}
+rm tmp tmp1 tmp2  b
+done
+
+elif [[ $start -eq 2 ]]; then
+
+#DEFINISCO I FILE DA USARE
+
+#ID file
+echo "Give me the name of the file that contains the individuals where i can choose from....the file must be an ILLUMINA/AFFYMETRIX file with the ID in the first column" 
+read r
+#ch_coded file
+FILE=$r
+echo "Give me the file with the SNPs information....the file must be a file with the ID int he first column followed by the genotype of the animal (both ATCG or 0-1-2-9/NA format is ok)"
+read f
+FILE1=$f
+
+########################PARTE 1 DELL'ALGORITMO - SELEZIONE RANDOM DEGLI INDIVIDUI - LAVORO IN FILE##################################
+
+####################################################################################################################################
+####################################################################################################################################
+####################################################################################################################################
+
+
+#Random selection of an animal. 
+# get line count for $FILE. wc -l can be used here.
+lc=0
+while read -r line; do
+ ((lc++))
+done < $FILE
+
+# get a random number between 1 and $lc. I know some people don't like RANDOM (distibution problem not confirmed btw). You can use tools like shuf instead. 
+
+rnd=$RANDOM
+let "rnd %= $lc"
+((rnd++))
+
+# traverse file1 and find line number $rnd. animale da file 1 che devo cercare in file. Sono sicuro che l'animale appartiene al chip che voglio.
+i=0
+while read -r line; do
+ ((i++))
+ [ $i -eq $rnd ] && break
+done < $FILE
+
+printf '%s\n' "$line" | awk '{print $1}' > id_chosen_animal #fino a qua sto selezionando 1 animale randomicamente tra quelli papabili
+
+ID=$(printf '%s\n' "$line" | awk '{print $1}') #ID contains a single individual
+
+########################PARTE 2.0 DELL'ALGORITMO - SELEZIONE DELL'INDIVIDUO NEL FILE CONTENENTE I GENOTIPI  - LAVORO IN FILE1  #############################
+########################PARTE 2.1 - SELEZIONE DEGLI SNPS DA MASCHERARE - LAVORO IN snps_ch{i} e snps_not_mask ##############################################
+############################################################################################################################################################
+############################################################################################################################################################
+############################################################################################################################################################
+
+#Cerco l'animale selezionato nel file ch_coded e lo estraggo in un file chiamato poppolo. poppolo é una linea con x camp dove x é il numero di snps + 1 campo ID
+ggrep -w $ID $FILE1 > poppolo
+cut -d ' ' -f 2- poppolo > a
+echo " Choose a chromosome! from 1 to 29"
+read c
+
+
+####PARTE PER DROPPARE I 9 (VEDI APPUNTI). QUANDO CI SARANNO SOLO QUELLI CHE PER a NON HANNO 9 ALLORA PROCEDI
+awk '
+{ 
+    for (i=1; i<=NF; i++)  {
+        a[NR,i] = $i
+    }
+}
+NF>p { p = NF }
+END {    
+    for(j=1; j<=p; j++) {
+        str=a[1,j]
+        for(i=2; i<=NR; i++){
+            str=str" "a[i,j];
+        }
+        print str
+    }
+}' temp"$c" > rrr
+
+cat rrr a > rrr1
+
+awk '
+{ 
+    for (i=1; i<=NF; i++)  {
+        a[NR,i] = $i
+    }
+}
+NF>p { p = NF }
+END {    
+    for(j=1; j<=p; j++) {
+        str=a[1,j]
+        for(i=2; i<=NR; i++){
+            str=str" "a[i,j];
+        }
+        print str
+    }
+}' rrr1 > rrr
+
+awk '$2 == "9" { next } { print }' rrr > rrr1
+
+cut -d ' ' -f1 rrr1 > rrr2
+
+ggrep -f rrr2 snps_ch"$c"  > rrr3 #rrr3 non contiene missing values snps procedi
+
+
+#seleziono gli snps che posso mascherare (togliendo dai totali quelli che non posso mascherare)
+
+
+
+sort rrr3 -o rrr3
+sort snps_not_mask -o snps_not_mask
+
+ggrep -v -f snps_not_mask rrr3  > rrr4
+
+#seleziono randomicamente il 10% degli snps. Possibilità di inserire diverse soglie.
+echo " Do you want to mask SNPs according to a percentage? 
+        1. YES
+        2. NO
+        "
+read answer
+
+if [[ $answer -eq 1 ]]; then
+
+echo " Put a percentage from 1 to 100"
+read percentage
+lc1=`wc -l < rrr4`
+select=$((lc1 / $percentage))
+gshuf -n $select rrr4 > snps_to_mask_ch"$c"
+rm rrr rrr1 rrr2 rrr3 rrr4
+
+elif [[ $answer -eq 2 ]]; then
+
+gshuf -n 10 rrr4 > snps_to_mask_ch"$c"   
+rm rrr rrr1 rrr2 rrr3 rrr4
+fi
+
+#output a questo punto contiene una lista di snps selezionati con relative posizioni. devo mascherare questi snps in poppolo
+
+#controllo che il numero di snps totali sia uguale al numero di colonne dell'animale selezionato
+check=`cat poppolo | awk '{print NF}' | uniq `
+let check1=$check-1
+lc2=`wc -l < snps_ch"$c"`
+
+if [[ $check1 -eq $lc2 ]]
+ then 
+ echo " Checking the number of SNPs......everything it's ok i can mask the SNPs"
+ else 
+echo "The number of columns in the selected animal is different from the number of SNPs for this chromosome...i can not proceed with the mask"
+ sleep 5
+ exit 1
+ fi
+
+########################PARTE 3.0 DELL'ALGORITMO - MASCHERAMENTO DEGLI SNPS IN POPPOLO  - LAVORO IN   #############################
+###################################################################################################################################
+###################################################################################################################################
+###################################################################################################################################
+
+#maschero gli snps presenti in output su poppolo
+# a é poppolo senza ID. riga 105.
+lc3=`wc -l < snps_to_mask_ch"$c"`
+out=snps_to_mask_ch"$c"
+
+for ((j=1; j<="$lc3"; j++)); do
+b=`awk -v var="$j" 'FNR == var {print $2}'< $out`
+let d=b
+awk -v var="$d" '{ if ($var != 9) $var=9; print $0 }'  a > a.tmp &&
+mv a.tmp a
+done 
+
+echo " Masking done...im preparing the output"
+
+paste -d ' ' id_chosen_animal a > poppolo
+
+#rm a 
+
+#file con gli animali che non sono in poppolo
+ggrep  -v -w $ID $FILE1 > poppolo1
+
+
+#unione poppolo e poppolo1 per formare il file su cui imputare
+
+cat poppolo poppolo1 > ch"$c"_coded_masked
+echo " The file with the masked genotypes is" ch"$c"_coded_masked " enjoy good luck with AlphaImpute now U_U"
+sleep 3
+
+fi
+```
+
+
+### Explanation
+The script will ask :
+* File containing a list of individuals in a specific SNPs array you want to mask.
+* Name of the file containing the SNPS information (file with ID in the first column followed by the genotype).
+
+The script will produce :
+
+* List of SNP masked.
+* ID of the masked animal.
+* File with the SNPs masked ready for Alphaimpute.

@@ -1,0 +1,40 @@
+---
+title: "create a list of SNPS in common between X given SNPs arrays."
+author: "Paolo Gottardo"
+date: "24 8 2016"
+---
+
+**NOTE
+* Put the script in the directory where you have the .bim files (generated using PLINK).
+* The script works for the current Geno project. If you want to use it in another project you will need to adapt it to your SNPs arrays (lines from 19 to 24)
+```R
+library(data.table)
+
+
+setwd(system("pwd",intern=T))
+dir=getwd()
+mypath <- file.path(dir,paste("Rplot", ".jpg", sep = ""))
+
+#import the files
+illumina777k=fread('merge777k_updated.bim')
+illumina54k=fread('merge54k_update1.bim')
+affymetrix54k=fread('merge54k_affymetrix__update2_ATCG.bim')
+
+#extract the snps in common
+d=affymetrix54k[affymetrix54k$V2 %in% illumina54k$V2,]
+d1=illumina777k[illumina777k$V2 %in% d$V2,] 
+d2=d1[,c(2), with=F]
+
+#frequency table for common snps
+chfreq=as.data.frame(table(d1$V1))
+
+jpeg(file = mypath)
+plot=barplot(table(d1$V1), las=1,space=0,names=chfreq$Var1,ylim=c(0,max(chfreq$Freq)+100),yaxt='n', xlab='Chromosome', ylab = 'Number of SNPs in common ')
+plot=axis(2,seq(0,max(chfreq$Freq)+100,by=100))
+dev.off()
+
+write.table(d2,file='snps_not_mask',sep = "\t",col.names = F,row.names = F,quote = F)
+write.table(chfreq,file='common_snps_freqtable',sep = "\t",col.names = T,row.names = F,quote = F)
+
+```
+
