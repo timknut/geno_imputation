@@ -18,6 +18,8 @@ date: "24 8 2016"
 ```bash
 #!/bin/bash
 
+#cominco a costruire i files che conterranno l'informazione di cui avrò bisogno
+
 #1. File contenente il nome degli snps nel file finale usato per il merge. Importante pechè contiene l'esatto ordine in cui sono messi gli snps. 1 per cromosoma
 echo " Do you want to generate the files with the SNPS names/position from the .raw chromosome? SKIP THIS PART IF YOU ALREADY HAVE THE FILES. NOte you will need to rerun the program if YES is supplied
         1. YES DO IT!!!
@@ -28,8 +30,8 @@ read start
 if [[ $start -eq 1 ]]; then
 
 for i in {1..29}; do 
-head -1 chr${i}_coded > tmp
-cut -d " " -f 2- tmp > tmp1
+head -1 chr${i}.raw> tmp
+cut -d " " -f 7- tmp > tmp1
 awk '
 { 
     for (i=1; i<=NF; i++)  {
@@ -49,12 +51,23 @@ END {
 
 while read -r line; do echo ${line:0:(${#line}-2)}; done<tmp2 > temp${i} 
 a=`wc -l < temp${i} `
-seq 1 1 $a > b 
+seq 1 1 $a > b #cambia facendo partire da 7 in caso di .raw file nello step sucessivo
 paste -d ' ' temp${i} b > snps_ch${i}
 rm tmp tmp1 tmp2  b
 done
 
+#2. Nomi degli individui appartenenti ad ogni singolo array. Potrei usare direttamente i .fam files ma preferisco generare 3 files nuovi contenenti solo l'informazione dell'ID per non corrompere i .fam files
+
+cut -d " " -f2 merge777k_updated_ATCG.fam > ID777k
+cut -d " " -f2 merge54k_update1_ATCG.fam > ID54k
+cut -d " " -f2 merge54k_affymetrix__update2_ATCG.fam > ID54k_affy
+
 elif [[ $start -eq 2 ]]; then
+
+#3. Lista degli snps da non mascherare. Prodotta usando R. Lista unica per tutti i cromosomi
+#script in R. Da automatizzare per un numero x di bim files. Necessari i vari bim files all'interno della working directory.
+./snp_list_not_mask.R
+
 
 #DEFINISCO I FILE DA USARE
 
@@ -66,7 +79,8 @@ FILE=$r
 echo "Give me the file with the SNPs information....the file must be a file with the ID int he first column followed by the genotype of the animal (both ATCG or 0-1-2-9/NA format is ok)"
 read f
 FILE1=$f
-
+echo "Tell me the chromosome number"
+read c 
 ########################PARTE 1 DELL'ALGORITMO - SELEZIONE RANDOM DEGLI INDIVIDUI - LAVORO IN FILE##################################
 
 ####################################################################################################################################
@@ -74,7 +88,7 @@ FILE1=$f
 ####################################################################################################################################
 
 
-#Random selection of an animal. 
+#seleziono randomicamente un animale da mascherare. Tale animale viene selezionato da una delle 3 specifiche liste (illumina777 illumina54 e affy54) garantendo il mascheramento dell'animale proveniente da quel chip
 # get line count for $FILE. wc -l can be used here.
 lc=0
 while read -r line; do
@@ -82,6 +96,20 @@ while read -r line; do
 done < $FILE
 
 # get a random number between 1 and $lc. I know some people don't like RANDOM (distibution problem not confirmed btw). You can use tools like shuf instead. 
+
+#loop per implementare la selezione di molteplici animali
+echo "Choose the number of animals you want to mask"
+read number
+
+#rimuovo il file con gli animali selezionati se esiste
+delete="id_chosen_animal"
+
+if [ -f $delete ] ; then
+    rm $delete
+fi
+
+ID=()
+for ((j=1; j<="$number"; j++)); do
 
 rnd=$RANDOM
 let "rnd %= $lc"
@@ -94,9 +122,25 @@ while read -r line; do
  [ $i -eq $rnd ] && break
 done < $FILE
 
-printf '%s\n' "$line" | awk '{print $1}' > id_chosen_animal #fino a qua sto selezionando 1 animale randomicamente tra quelli papabili
+printf '%s\n' "$line" | awk '{print $1}' >> id_chosen_animal #fino a qua sto selezionando 1 animale randomicamente tra quelli papabili
 
-ID=$(printf '%s\n' "$line" | awk '{print $1}') #ID contains a single individual
+a=$(printf '%s\n' "$line" | awk '{print $1}')
+
+ID[j]=$a #bug da risolvere bash tratta il carattere nell'array come numerico invece di alfanumerico e quindi crasha se la matricola contiene lettere perché cerca di convertirle in numeri. RISOLTO.
+
+done
+
+echo "This is the list of the animals i am going to mask. You will find them in the file named id_chosen_animal" 
+for i in “${ID[@]}”
+do
+echo $i
+done 
+
+#printf '%s\n' "${ID[@]}"
+
+
+
+#ID=$(printf '%s\n' "$line" | awk '{print $1}') #ID contiene un singolo individuo
 
 ########################PARTE 2.0 DELL'ALGORITMO - SELEZIONE DELL'INDIVIDUO NEL FILE CONTENENTE I GENOTIPI  - LAVORO IN FILE1  #############################
 ########################PARTE 2.1 - SELEZIONE DEGLI SNPS DA MASCHERARE - LAVORO IN snps_ch{i} e snps_not_mask ##############################################
@@ -105,10 +149,20 @@ ID=$(printf '%s\n' "$line" | awk '{print $1}') #ID contains a single individual
 ############################################################################################################################################################
 
 #Cerco l'animale selezionato nel file ch_coded e lo estraggo in un file chiamato poppolo. poppolo é una linea con x camp dove x é il numero di snps + 1 campo ID
-ggrep -w $ID $FILE1 > poppolo
+rm poppolo
+for i in "${ID[@]}"
+do 
+#tmp=printf '%s\n' "${ID[@]}"
+ggrep -w "\b$i\b" $FILE1 >> poppolo
+done
+
+
+
+
 cut -d ' ' -f 2- poppolo > a
-echo " Choose a chromosome! from 1 to 29"
-read c
+#echo " Choose a chromosome! from 1 to 29"
+#read c
+
 
 
 ####PARTE PER DROPPARE I 9 (VEDI APPUNTI). QUANDO CI SARANNO SOLO QUELLI CHE PER a NON HANNO 9 ALLORA PROCEDI
@@ -129,7 +183,9 @@ END {
     }
 }' temp"$c" > rrr
 
-cat rrr a > rrr1
+cat rrr a > rrr1 #rbind di rrr che contiene i nomi degli snps e a che contiene i genotipi dell'animale selezionato
+
+
 
 awk '
 { 
@@ -165,7 +221,7 @@ sort snps_not_mask -o snps_not_mask
 ggrep -v -f snps_not_mask rrr3  > rrr4
 
 #seleziono randomicamente il 10% degli snps. Possibilità di inserire diverse soglie.
-echo " Do you want to mask SNPs according to a percentage? 
+echo " Do you want to mask SNPs according to a percentage? If your choice is NO i will mask only 10 SNPs
         1. YES
         2. NO
         "
@@ -183,7 +239,7 @@ rm rrr rrr1 rrr2 rrr3 rrr4
 elif [[ $answer -eq 2 ]]; then
 
 gshuf -n 10 rrr4 > snps_to_mask_ch"$c"   
-rm rrr rrr1 rrr2 rrr3 rrr4
+#rm rrr rrr1 rrr2 rrr3 rrr4
 fi
 
 #output a questo punto contiene una lista di snps selezionati con relative posizioni. devo mascherare questi snps in poppolo
@@ -221,18 +277,29 @@ done
 
 echo " Masking done...im preparing the output"
 
+#inserire un check per il problema dei doppi (aka id animal con meno righe di a)
+
 paste -d ' ' id_chosen_animal a > poppolo
 
 #rm a 
 
 #file con gli animali che non sono in poppolo
-ggrep  -v -w $ID $FILE1 > poppolo1
+rm poppolo1
+for i in "${ID[@]}"
+do 
+sed "/\b$i\b/d" $FILE1 > poppolo1.tmp &&
+mv poppolo1.tmp poppolo1
+done
+
+#ggrep  -v -w $ID $FILE1 > poppolo1
 
 
 #unione poppolo e poppolo1 per formare il file su cui imputare
 
 cat poppolo poppolo1 > ch"$c"_coded_masked
 echo " The file with the masked genotypes is" ch"$c"_coded_masked " enjoy good luck with AlphaImpute now U_U"
+
+rm rrr rrr1 rrr2 rrr3 rrr4 poppolo poppolo1
 sleep 3
 
 fi
