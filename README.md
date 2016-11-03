@@ -115,6 +115,10 @@ Convertion is done by calling snptranslate present in this repo.
 
 Usage: `sh scripts/Genome_2_plink.sh [FinalReport file] [input-format](Genomelist or Genomematrix) [markerfile]`
 
+## Merge converted plink files
+
+TIM: TODO --bmerge???
+
 ## QC of converted raw data **before** imputation. 
 ### Suggestions for filtering:
 * Missingess per animal. 90 % 
@@ -122,5 +126,9 @@ Usage: `sh scripts/Genome_2_plink.sh [FinalReport file] [input-format](Genomelis
 * HWE p < 1e-7
 * Mendelian error filtering per SNP and animal. (Although AlphaImpute do a good job at this.)
 * Heterozygosity per animal
+
+## Convert to alphaimpute format
+
+See Paolos [script](https://github.com/timknut/geno_imputation/blob/master/scripts/plink2_alphaimpute.Rmd). In addition to this, do a chromsomoe loop in plink and do something like `for i in seq 1 29; do plink --recode A --chr $i --cow --bfile prefix --out prefix.$i.raw; done`
 
 ## Documentation and scripts for imputation.
