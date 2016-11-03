@@ -41,6 +41,11 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 ```
 # Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
+
+## Split collection files.
+Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`
+The script `scripts/split_collectionfiles.sh` shows how this was done in Tims version of the REPO. 
+
 ## Common folder tree
 Look like this in Tims local repo, as of july 14. 2016.
 ```sh
@@ -66,6 +71,21 @@ tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
 16 directories
 
 ```
+
+## Automatically summarize raw data in folder tree. 
+See `genotype_rawdata/summarize_rawdata/produce_list.sh` and `genotype_rawdata/summarize_rawdata/parse_date_chip_sample_collection2.r`for a suggestionon on how to do this.
+
+**Produces the folllowing table:**
+
+|sample_id     |processing_date     |chip           |file_path       |file |
+|:-------------|:-------------------|:--------------|:---------------|:----|
+|11210365_2029 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
+|11210181_1098 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
+|15670347_1067 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
+|16366250_1562 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
+|16538211_637  |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
+|16366330_1103 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
+
 ## Prepare marker map files.  
 ioSNP.py will create the plink map file, which is a better solution than doing it manually in R. 
 ### Convert annotation file to map file accepted by ioSNP.py
@@ -83,6 +103,15 @@ Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master
 usage: `seqreport.py -m genotype_rawdata/marker_mapfiles/affy50k_annotation_final_list_20160715.txt -r [dummy reportfilename] -o outfile_semi.ped [Affy .call file]`
 
 2. Define file structure for converted data.
+
+### Illumina
+Use `scripts/Genome_2_plink.sh` : 
+
+Script takes an illumina Finalreport in GenomeList or Genomematrix format and outputs
+a plink *.ped and *.map file automatically named plink_format/[infile].ped/map
+Convertion is done by calling snptranslate present in this repo.
+
+Usage: `sh scripts/Genome_2_plink.sh [FinalReport file] [input-format](Genomelist or Genomematrix) [markerfile]`
 
 ## QC of converted raw data **before** imputation. 
 ### Suggestions for filtering:
