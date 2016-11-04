@@ -126,13 +126,16 @@ plink --cow --bfile inprefix --merge-list file_list.txt --out all_merged
 ## QC of converted raw data **before** imputation. 
 ### Suggestions for filtering:
 * Missingess per animal. 90 % 
-* Missingness per SNP 95 %
+* Missingness per SNP 90 %
 * HWE p < 1e-7
+* MAF < 0.01
 * Mendelian error filtering per SNP and animal. (Although AlphaImpute do a good job at this.)
 * Heterozygosity per animal
+Example plink command: `plink --bfile infile --cow --hwe 1e-7 --maf 0.01 --geno 0.90 --mind 0.90`
 
 ## Convert to alphaimpute format
 
 See Paolos [script](https://github.com/timknut/geno_imputation/blob/master/scripts/plink2_alphaimpute.Rmd). In addition to this, do a chromsomoe loop in plink and do something like `for i in seq 1 29; do plink --recode A --chr $i --cow --bfile prefix --out prefix.$i.raw; done`
 
 ## Documentation and scripts for imputation.
+Paolo: TODO
