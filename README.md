@@ -109,11 +109,19 @@ usage: `seqreport.py -m genotype_rawdata/marker_mapfiles/affy50k_annotation_fina
 ### Illumina
 Use `scripts/Genome_2_plink.sh` : 
 
-Script takes an illumina Finalreport in GenomeList or Genomematrix format and outputs
+Script takes an illumina Finalreport in standard (GenomeList) or Matrix (Genomematrix) format and outputs
 a plink *.ped and *.map file automatically named plink_format/[infile].ped/map
+See the [Genomestudio documentation](http://support.illumina.com/content/dam/illumina-support/documents/documentation/software_documentation/genomestudio/genomestudio-2-0/genomestudio-genotyping-module-v2-user-guide-11319113-01.pdf) page 61. for details. 
 Convertion is done by calling snptranslate present in this repo.
 
 Usage: `sh scripts/Genome_2_plink.sh [FinalReport file] [input-format](Genomelist or Genomematrix) [markerfile]`
+
+## Merge converted plink files
+See the [plink documentation](https://www.cog-genomics.org/plink2/data#merge) for more information.
+Given a file that list file prefixes that are to be merged with a plink binary file-set, the following command would work.
+```sh
+plink --cow --bfile inprefix --merge-list file_list.txt --out all_merged
+```
 
 ## QC of converted raw data **before** imputation. 
 ### Suggestions for filtering:
@@ -122,5 +130,9 @@ Usage: `sh scripts/Genome_2_plink.sh [FinalReport file] [input-format](Genomelis
 * HWE p < 1e-7
 * Mendelian error filtering per SNP and animal. (Although AlphaImpute do a good job at this.)
 * Heterozygosity per animal
+
+## Convert to alphaimpute format
+
+See Paolos [script](https://github.com/timknut/geno_imputation/blob/master/scripts/plink2_alphaimpute.Rmd). In addition to this, do a chromsomoe loop in plink and do something like `for i in seq 1 29; do plink --recode A --chr $i --cow --bfile prefix --out prefix.$i.raw; done`
 
 ## Documentation and scripts for imputation.
