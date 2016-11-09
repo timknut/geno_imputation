@@ -1,0 +1,201 @@
+### PLINK workflow used in Geno data editing
+
+* The workflow starts with all the data already converted into PLINK format using Harald's scripts
+* The collectioned1 and collectioned2 files are already split (see Tim's script for that)
+
+```bash
+#This is the pipeline i used with PLINK to edit Geno data
+
+#1.CONVERSION OF ALL THE FILES IN PLINK FORMAT USING HARALD'S SCRIPTS (.....)
+#2.CONVERSION OF ALL THE FILES IN BINARY FORMAT. Merge the files into three groups: one for 777k , one for 54k illumina and one for the 54k affymetrix.
+#3.REMOVE ALL THE ID'S IN THE 54K THAT ARE PRESENT IN THE 54K (REDUNDANT INFORMATION) AND ALL THE DOUBLE ID'S.
+#4.REMOVE SOME MESSED ID'S (SEE ISSUE NUMBER .....). THOSE ID'S HAVE DIFFERENT SAMPLE ID BUT SAME ID. WE MUST DELETE THEM.
+#5.CHANGE ALL THE SAMPLE ID'S WITH THE PEDIGREE ID'S (GENO INFORMATION)
+#6.HETEROZYGOSITY TEST AND REMOTION OF THE ID'S THAT FAILED IT
+#7.CONVERSION OF ALL THE FILES INTO ATCG FORMAT (THIS PASSAGE IS NOT FUNDAMENTAL)
+#8.MISSINGNESS PER ANIMAL.FILTER 
+#9.MISSINGNESS PER SNPS
+
+#10.MAF FILTER. 0.01 THRESHOLD. SKIP THIS PART IF YOU DON'T WANT TO FILTER FOR MAF. I DIDN'T FILETER FOR IT (FOLLOWING YOUR INSTRUCTIONS)
+#11.MERGE OF ALL THE ILLUMINA FILES
+#12.MERGE AFFYMETRIX FILES WITH ILLUMINA FILES IN ORDER TO HAVE THE LIST OF THE SNPS TO FLIP
+#13.FLIP ILLUMINA SNPS IN ORDER TO ENSURE COMPATIBILITY WITH AFFYMETRIX
+#14.MERGE ILLUMINA WITH AFFIMETRYX
+#15. HW FILTER 0.0000001 
+
+#16.LOOP IN ORDER TO EXTRACT ALL THE CHROMOSOMES
+#17.LOOP IN ORDER TO CONVERT EVERYTHING IN ALPHAIMPUTE FORMAT
+
+
+#2.CONVERSION OF ALL THE FILES IN BINARY FORMAT. Merge the files into two groups: one for 777k , one for 54k illumina and one for the 54k affymetrix. Note: you can do this with a single comand line using the --merge-list  option in plink. I did't use it because i wanted to check each merge individually.
+
+./plink --file FinalReport_54kV1_apr2009_ed1 --cow --make-bed --out FinalReport_54kV1_apr2009_ed1
+./plink --file FinalReport_54kV1_ed1 --cow --make-bed --out FinalReport_54kV1_ed1
+./plink --file FinalReport_54kV2_collection_ed1 --cow --make-bed --out FinalReport_54kV2_collection_ed1
+./plink --file FinalReport_54kV2_collection_ed2 --cow --make-bed --out FinalReport_54kV2_collection_ed2
+./plink --file FinalReport_54kV2_ed1 --cow --make-bed --out FinalReport_54kV2_ed1
+./plink --file FinalReport_54kV2_feb2011_ed1 --cow --make-bed --out FinalReport_54kV2_feb2011_ed1
+./plink --file FinalReport_54kV2_genoskan --cow --make-bed --out FinalReport_54kV2_genoskan
+./plink --file FinalReport_54kV2_nov2011_ed1 --cow --make-bed --out FinalReport_54kV2_nov2011_ed1
+./plink --file Nordic_54k --cow --make-bed --out Nordic_54k
+./plink --file Nordic_54k_2012_ed1 --cow --make-bed --out Nordic_54k_2012_ed1
+./plink --file Swedish_54k_ed1 --cow --make-bed --out Swedish_54k_ed1
+
+./plink --file FinalReport_777k_jun2015 --cow --make-bed --out FinalReport_777k_jun2015
+./plink --file FinalReport_777k_apr2015 --cow --make-bed --out FinalReport_777k_apr2015
+./plink --file FinalReport_777k_jan2015 --cow --make-bed --out FinalReport_777k_jan2015
+./plink --file FinalReport_777k --cow --make-bed --out FinalReport_777k
+./plink --file Nordic_HDexchange_201110 --cow --make-bed --out Nordic_HDexchange_201110
+
+./plink --file Batch1 --cow --make-bed --out Batch1
+./plink --file Batch2 --cow --make-bed --out Batch2
+./plink --file Batch3 --cow --make-bed --out Batch3
+
+
+#merge of the 54k illumina using the --merge-list option
+./plink --bfile FinalReport_54kV1_apr2009_ed1 --merge-list list --cow --recode --out merge_54k
+
+
+#merge of the 777k illumina using the --merge-list option
+./plink --bfile FinalReport_777k_jun2015 --merge-list list --cow --recode --out merge_777k
+
+#merge of the 54k affymetrix using the --merge-list option
+./plink --bfile merge --bmerge Batch1 --merge-list list --cow --recode --out merge54k_affymetrix_temp
+
+./plink --bfile affy_25K_flipped_2_affy50K --allele1234 --cow --make-bed
+./plink --bfile merge54k_affymetrix_temp --bmerge plink --cow --recode --out merge54k_affymetrix
+
+
+
+
+#3.REMOVE ALL THE ID'S IN THE 54K THAT ARE PRESENT IN THE 54K (REDUNDANT INFORMATION) AND ALL THE DOUBLE ID'S.
+
+./plink --bfile merge54k --cow --remove id_to_delete54k --make-bed --out merge54k_cleaned
+./plink --bfile merge_777k --cow --remove id_to_delete54k --make-bed --out merge777k_cleaned
+./plink --bfile merge54k_affymetrix --cow --remove id_to_delete54k --make-bed --out merge54k_affymetrix_cleaned
+
+#4.REMOVE SOME MESSED ID'S (SEE ISSUE NUMBER .....). THOSE ID'S HAVE DIFFERENT SAMPLE ID BUT SAME ID. WE MUST DELETE THEM.
+
+./plink --bfile merge54k_cleaned --cow --remove id_remove_scientific_54k --make-bed --out merge54k_cleaned1
+
+#5.CHANGE ALL THE SAMPLE ID'S WITH THE PEDIGREE ID'S (GENO INFORMATION)
+
+./plink --bfile merge54k_cleaned1 --update-ids list_changeID_plink_54k --make-bed --cow --out merge54k_cleaned1_update
+./plink --bfile  merge777k_cleaned --update-ids list_changeID_plink --make-bed --cow --out  merge777k_cleaned_update
+./plink --bfile merge54k_affymetrix_cleaned --update-ids list_changeID_plink --make-bed --cow --out merge54k_affymetrix_update
+
+
+#6.HETEROZYGOSITY TEST AND REMOTION OF THE ID'S THAT FAILED IT
+
+./plink --bfile merge54k_cleaned1_update --cow --het --out het_illumina54k
+./plink --bfile merge777k_cleaned_update--cow --het --out het_illumina54k
+./plink --bfile merge54k_affymetrix_update --cow --het --out het_affymetrix
+
+#deletion of the ID's that failed the hetero test
+./plink --bfile merge54k_cleaned1_update  --cow --remove hetero_remove --make-bed --out merge54k_update1
+./plink --bfile merge777k_cleaned_update --cow --remove hetero_remove --make-bed --out merge777k_update1
+./plink --bfile merge54k_affymetrix_update --cow --remove hetero_remove --make-bed --out merge54k_affymetrix_update1
+
+#7.CONVERSION OF ALL THE FILES INTO ATCG FORMAT (THIS PASSAGE IS NOT FUNDAMENTAL)
+
+./plink --file merge54k_update1 --cow --alleleACGT --recode --out merge54k_update1_ATCG
+./plink --file merge777k_update1 --cow --alleleACGT --recode --out merge777k_update1_ATCG
+./plink --file merge54k_affymetrix_update1 --cow --alleleACGT --recode --out merge54k_affymetrix_update1_ATCG
+
+#8.MISSINGNESS PER ANIMAL.FILTER 
+
+./plink --bfile merge54k_update1_ATCG --cow --missing --out missing_54k
+./plink --file merge777k_update1_ATCG --cow --missing --out missing_777k
+./plink --bfile  merge54k_affymetrix_update1_ATCG  --cow --missing --out missing_54k_affy #don't filter this since there are low density genotyped animals (3k)
+
+#9.MISSINGNESS PER SNPS.
+
+#illumina 777k 12115 variants removed due to missing genotype data (--geno)
+./plink --file merge777k_update1_ATCG --cow --geno 0.1 --make-bed --out merge777k_update1_ATCG_filtered
+#illumina 54k 15303 variants removed due to missing genotype data (--geno)
+./plink --file merge54k_update1_ATCG --cow --geno 0.1 --make-bed --out merge54k_update1_ATCG_filtered
+#affymetrix 54k 0 missing in the 54k. file== merge54k_affymetrix_update1_ATCG
+
+
+
+#10.MAF FILTER. 0.01 THRESHOLD. SKIP THIS PART IF YOU DON'T WANT TO FILTER FOR MAF. I DIDN'T FILTER FOR IT (FOLLOWING YOUR INSTRUCTIONS).
+
+#Illumina 777k
+./plink --bfile merge777k_update1_ATCG_filtered --maf 0.01 --cow --make-bed --out merge777k_update1_ATCG_filtered1
+#Illumina 54k
+./plink --bfile merge54k_update1_ATCG_filtered --maf 0.01 --cow --make-bed --out merge54k_update1_ATCG_filtered1
+#Affymetrix
+./plink --bfile merge54k_affymetrix_update1_ATCG --maf 0.01 --cow --make-bed --out merge54k_affymetrix_update1_ATCG_filtered1
+
+
+#11.MERGE OF ALL THE ILLUMINA FILES
+
+./plink --bfile merge777k_update1_ATCG_filtered --bmerge  merge54k_update1_ATCG_filtered --cow --recode --out merge_illumina_ATCG
+
+#12.MERGE AFFYMETRIX FILES WITH ILLUMINA FILES IN ORDER TO HAVE THE LIST OF THE SNPS TO FLIP
+./plink --bfile merge54k_affymetrix_update1_ATCG --bmerge  merge_illumina_ATCG --cow --recode --out merge1
+
+#13.FLIP ILLUMINA SNPS IN ORDER TO ENSURE COMPATIBILITY WITH AFFYMETRIX
+./plink --file merge_illumina_ATCG --flip merge1.missnp --cow --make-bed --out flipped
+
+#14.MERGE ILLUMINA WITH AFFIMETRYX
+./plink --bfile flipped --bmerge  merge54k_affymetrix__update2_ATCG_filtered1 --cow --recode --out merge_final_ATCG
+
+#15. HW FILTER 0.0000001. 24685 variants removed due to Hardy-Weinberg exact test
+./plink --bfile merge_final_ATCG --cow --hwe 0.0000001 --make-bed --out merge_final_ATCG_no_maf
+
+
+#16.LOOP IN ORDER TO EXTRACT ALL THE CHROMOSOMES
+
+for i in {1..29}; do
+./plink --file merge_final2_ATCG_no_maf --cow --recode A --chr ${i} --out chr${i}
+done
+
+
+#17.LOOP IN ORDER TO CONVERT EVERYTHING IN ALPHAIMPUTE FORMAT
+
+for i in {1..29} ; do
+	tail -n +2 chr${i}.raw > file_flipped
+	cut -f 7- -d ' ' file_flipped > SNPs
+	cut -f2 -d ' ' file_flipped > ID
+	sed -i -e "s/[[:<:]]NA[[:>:]]/9/g" SNPs
+	paste -d ' ' ID SNPs > ch${i}_coded
+	rm ID SNPs file_flipped SNPs-e
+done
+
+
+######END######
+
+
+
+#ALPHAIMPUTE RUN
+
+.
+.
+.
+.
+.
+.
+.
+.
+
+#IMPUTED DATA 
+
+
+#REMOVE ID_MESSED (402 more or less)
+#REMOVE ANIMALS THAT ARE IN THE PEDIGREE BUT ARE NOT GENOTYPED
+
+
+
+
+
+
+############CORRELATIONS
+
+Scenario 1. cross validation keeping all the SNPs in the dataframe, masking 100 animals and 20% of the snps for those animals…totally random with one condition: the snps must not have a low MAF. Overall correlations 0.98.
+
+Scenario 2. 30 rounds of validations masking one animal at a time (10 animals for each array). Condition: the snps must not have a low MAF. Overall correlations 0.98.
+
+Scenario 3. 30 rounds of validations masking one animal at a time . Condition: the snps must not have a low MAF.Condition2: I’m now masking animals that belongs only to the 6k snp chip . Overall correlations 0.90.
+```
+
