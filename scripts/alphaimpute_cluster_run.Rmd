@@ -1,0 +1,355 @@
+### Scripts that run AlphaImpute in a cluster server
+
+* The scripts can be modified
+* Read the notes on the header of the following script
+
+```bash
+#!/bin/bash
+
+#General code that runs AlphaImpute on a cluster server. It's very interactive so you can choose which part of alphaimpute you want to run. It requires the ende of the previous step in order to proceed with the following (e.g you need to wait until phasing is completed). I can add an hold option if you want so the script will keep the server constantly 'busy'. You can also have a script that will be able to operate in both ways....just let me know. 
+#Usually i prefer to do each step at a time because i can babysit the process and see if there are errors...but it's ok in both ways. The script will produce also a .log file for each step so you can track the errors.
+
+#you can have the same directory or different directories. I used only one directory and i put all the executables as well as the Pedigree.txt file and the general AlphaImputeSpec.txt inside that directory.If you want two different directories you can put all the executables and the general AlphaImputeSpec.txt inside the home directory and the Pedigree.txt file inside the work directory.
+#NOTE in this example i am using the version AlphaImputev1.5.5-57-gc610270 of AlphaImpute. You will need to change it if you are using another version.
+
+#The qsub files (e.g. qsub301.sh) are files used to run the programs (AI,APhase,GeneProb). I made them instead of running the program directly from the script because doing so the code is more maintainable (aka you can change all the options you want inside the qsub file and the code will run without any problem)
+
+export home="/exports/cmvm/eddie/eb/groups/hickey_group/pgottard/"
+export work="/exports/cmvm/eddie/eb/groups/hickey_group/pgottard/"
+export nCHR=29
+#This script works for any nuber of chromosomes
+
+echo "Choose the option:
+	1. Restart option 1
+	2. GeneProb
+	3. Restart option 2
+	4. Phasing
+	5. Restart option 3
+	6. GeneProb 2
+	7. Restart option 4
+	"
+read PROG
+
+if [ "$PROG" == "1" ]; then 
+
+echo "301 - Run AlphaImpute with restart option =1"
+
+for ((i=1; i<=${nCHR}; i++)); do
+
+	(cd Chromosomes/ch${i}/ || exit
+	rm -f input.ped && ln -sf ${work}/Pedigree.txt input.ped
+	rm -f input.gen && ln -sf ch${i}_coded input.gen
+
+	rm -f AlphaImputev1.5.5-57-gc610270 && ln -sf ${home}/AlphaImputev1.5.5-57-gc610270 .
+	rm -f qsub301.sh && ln -sf ${home}/qsub301.sh .
+
+	a=`awk '{print NF}' ch${i}_coded | sort -nu | tail -n 1`
+	b=1
+	let c=$a-$b
+
+
+	cat ${home}/AlphaImputeSpec.txt | sed -e "s/XXNROFSNPXX/${c}/" \
+    										  -e "s/XXNRPROCAVXX/20/" \
+		   									  -e "s/XXRESOPTXX/1/" \
+		    								  -e "s/XXBYPASSXX/No/" > AlphaImputeSpec1.txt
+
+	ln -sf AlphaImputeSpec1.txt AlphaImputeSpec.txt
+
+
+		qsub -N S1ch${i} qsub301.sh	)
+	done 
+
+cd ${work} || exit
+
+echo "302 - Run GeneProb"
+echo
+echo
+
+for ((i=1; i<=${nCHR}; i++)); do
+	(cd Chromosomes/ch${i}/ || exit
+		for k in GeneProb/*; do
+	    (if [ -d "${k}" ]; then
+	    	echo $k
+			cd ${k} || exit
+			rm -f GeneProbForAlphaImpute && ln -sf ${home}/GeneProbForAlphaImpute .
+			rm -f qsub302.sh && ln -sf ${home}/qsub302.sh .
+			G=$(echo $k | cut -c 18-)
+			qsub -N G1ch${i}${G} qsub302.sh
+			sleep 5s
+	    fi )
+		done
+	cd ${work} || exit
+	)
+done
+
+cd ${work} || exit
+
+elif [ "$PROG" == "3" ]; then 
+
+echo "303 - Run AlphaImpute with restart option =2"
+echo
+echo
+
+
+for ((i=1; i<=${nCHR}; i++)); do
+
+	(cd Chromosomes/ch${i}/ || exit
+	rm -f input.ped && ln -sf ${work}/Pedigree.txt input.ped
+	rm -f input.gen && ln -sf ch${i}_coded input.gen
+
+	rm -f AlphaImputev1.5.5-57-gc610270 && ln -sf ${home}/AlphaImputev1.5.5-57-gc610270 .
+	rm -f qsub301.sh && ln -sf ${home}/qsub301.sh .
+
+	a=`awk '{print NF}' ch${i}_coded | sort -nu | tail -n 1`
+	b=1
+	let c=$a-$b
+
+
+	cat ${home}/AlphaImputeSpec.txt | sed -e "s/XXNROFSNPXX/${c}/" \
+    										  -e "s/XXNRPROCAVXX/20/" \
+		   									  -e "s/XXRESOPTXX/2/" \
+		    								  -e "s/XXBYPASSXX/No/" > AlphaImputeSpec2.txt
+
+	ln -sf AlphaImputeSpec1.txt AlphaImputeSpec.txt
+
+
+		qsub -N S2ch${i} qsub301.sh	)
+	done 
+
+cd ${work} || exit
+
+elif [ "$PROG" == "4" ]; then 
+
+echo "304 - Run alphaphase"
+echo
+echo
+
+
+for ((i=1; i<=${nCHR}; i++)); do
+	(cd Chromosomes/ch${i}/ || exit
+		for p in Phasing/*; do
+			( if [ -d "${p}" ]; then
+			cd ${p} || exit
+			rm -f alphaphase && ln -sf ${home}/alphaphase .
+			rm -f qsub304.sh && ln -sf ${home}/qsub304.sh .
+
+			#while [ $(qstat | wc -l) -gt ${MAXJOBSPAR} ] || [ ! (grep FINISH ../../GeneProb_ch${j}.log ) ] ; do
+				#echo "Queue limit reached (${MAXJOBSPAR} jobs) or GeneProb not finish. Waiting ..."
+				#sleep 1m
+			#done
+
+			G=$(echo $p| cut -c 14-)
+			qsub -N AP2ch${i}p${G} qsub304.sh
+			sleep 3s
+	    fi)
+
+		done
+	cd ${work} || exit
+	)
+done
+
+cd ${work} || exit
+
+
+elif [ "$PROG" == "4" ]; then 
+
+echo "305 - Run AlphaImpute with restart option =3"
+echo
+echo
+
+
+for ((i=1; i<=${nCHR}; i++)); do
+
+	(cd Chromosomes/ch${i}/ || exit
+	rm -f input.ped && ln -sf ${work}/Pedigree.txt input.ped
+	rm -f input.gen && ln -sf ch${i}_coded input.gen
+
+	rm -f AlphaImputev1.5.5-57-gc610270 && ln -sf ${home}/AlphaImputev1.5.5-57-gc610270 .
+	rm -f qsub301.sh && ln -sf ${home}/qsub301.sh .
+
+	a=`awk '{print NF}' ch${i}_coded | sort -nu | tail -n 1`
+	b=1
+	let c=$a-$b
+
+
+	cat ${home}/AlphaImputeSpec.txt | sed -e "s/XXNROFSNPXX/${c}/" \
+    										  -e "s/XXNRPROCAVXX/20/" \
+		   									  -e "s/XXRESOPTXX/3/" \
+		    								  -e "s/XXBYPASSXX/No/" > AlphaImputeSpec3.txt
+
+	ln -sf AlphaImputeSpec1.txt AlphaImputeSpec.txt
+
+
+		qsub -N S3ch${i} qsub301.sh	)
+	done 
+
+cd ${work} || exit
+
+elif [ "$PROG" == "6" ]; then 
+echo "305 - Run GeneProb...AGAIN -.-....why you are not using the HMM option ? :( "
+echo 
+echo
+
+for ((i=1; i<=${nCHR}; i++)); do
+	(cd Chromosomes/ch${i}/ || exit
+		for k in IterateGeneProb/*; do
+	    (if [ -d "${k}" ]; then
+	    	echo $k
+			cd ${k} || exit
+			rm -f GeneProbForAlphaImpute && ln -sf ${home}/GeneProbForAlphaImpute .
+			rm -f qsub302.sh && ln -sf ${home}/qsub302.sh .
+			G=$(echo $k | cut -c 18-)
+			qsub -N G1ch${i}${G} qsub302.sh
+			sleep 5s
+	    fi )
+		done
+	cd ${work} || exit
+	)
+done
+
+cd ${work} || exit
+
+elif [ "$PROG" == "7" ]; then 
+ 	echo "305 - Run AlphaImpute with restart option =4"
+ echo
+ echo
+
+for ((i=1; i<=${nCHR}; i++)); do
+
+	(cd Chromosomes/ch${i}/ || exit
+	rm -f input.ped && ln -sf ${work}/Pedigree.txt input.ped
+	rm -f input.gen && ln -sf ch${i}_coded input.gen
+
+	rm -f AlphaImputev1.5.5-57-gc610270 && ln -sf ${home}/AlphaImputev1.5.5-57-gc610270 .
+	rm -f qsub301.sh && ln -sf ${home}/qsub301.sh .
+
+	a=`awk '{print NF}' ch${i}_coded | sort -nu | tail -n 1`
+	b=1
+	let c=$a-$b
+
+
+	cat ${home}/AlphaImputeSpec.txt | sed -e "s/XXNROFSNPXX/${c}/" \
+    										  -e "s/XXNRPROCAVXX/20/" \
+		   									  -e "s/XXRESOPTXX/4/" \
+		    								  -e "s/XXBYPASSXX/No/" > AlphaImputeSpec4.txt
+
+	ln -sf AlphaImputeSpec1.txt AlphaImputeSpec.txt
+
+
+		qsub -N S4ch${i} qsub301.sh	)
+	done 
+
+cd ${work} || exit
+fi
+```
+
+### The following scripts are used in the main script
+
+* qsub301.sh runs AlphaImpute
+* qsub302.sh runs GeneProb
+* qsub304.sh runs AlphaPhase
+
+## qsub301.sh
+
+```bash
+#!/bin/bash
+########################################
+#                                      #
+# GE job script for ECDF Cluster       #
+#                                      #
+########################################
+
+#
+# Grid Engine options
+#$ -cwd
+#$ -pe sharedmem 8
+#$ -l h_vmem=32G
+#$ -l h_rt=200:00:00
+#$ -P roslin_hickey_group
+
+# Standard report
+
+echo "Working directory:"
+pwd
+date
+
+export PATH=.:~/bin:$PATH
+
+echo "Starting job:"
+./AlphaImputev1.5.5-57-gc610270  > AlphaImpute.log 
+
+# Standard report                                                                                    
+echo
+pwd
+date
+```
+
+## qsub302.sh
+
+```bash
+#!/bin/bash
+########################################
+#                                      #
+# GE job script for ECDF Cluster       #
+#                                      #
+########################################
+
+#
+# Grid Engine options
+#$ -cwd
+#$ -pe sharedmem 8
+#$ -l h_vmem=32G
+#$ -l h_rt=200:00:00
+#$ -P roslin_hickey_group
+
+# Standard report
+
+echo "Working directory:"
+pwd
+date
+
+export PATH=.:~/bin:$PATH
+
+# Job                                                                                                
+echo "Starting job:"
+./GeneProbForAlphaImputeLinux > GeneProbForAlphaImputeLinux.log 
+# Standard report                                                                                    
+echo
+pwd
+date
+```
+
+## qsub304.sh
+
+```bash
+#!/bin/bash
+########################################
+#                                      #
+# GE job script for ECDF Cluster       #
+#                                      #
+########################################
+
+#
+# Grid Engine options
+#$ -cwd
+#$ -pe sharedmem 8
+#$ -l h_vmem=32G
+#$ -l h_rt=200:00:00
+#$ -P roslin_hickey_group
+
+# Standard report
+
+echo "Working directory:"
+pwd
+date
+
+export PATH=.:~/bin:$PATH
+# Job                                                                                                
+echo "Starting job:"
+./alphaphase> AlphaPhaseLinux.log 
+
+# Standard report                                                                                    
+echo
+pwd
+date
+```
