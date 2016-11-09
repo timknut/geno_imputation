@@ -1,4 +1,4 @@
-### Scripts that run AlphaImpute in a cluster server
+### Scripts that run AlphaImpute on a cluster server
 
 * The scripts can be modified
 * Read the notes on the header of the following script
