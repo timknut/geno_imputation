@@ -61,6 +61,8 @@ for ((i=1; i<=${nCHR}; i++)); do
 
 cd ${work} || exit
 
+elif [ "$PROG" == "2" ]; then 
+
 echo "302 - Run GeneProb"
 echo
 echo
