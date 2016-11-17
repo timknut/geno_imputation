@@ -179,7 +179,7 @@ for ((i=1; i<=${nCHR}; i++)); do
 		   									  -e "s/XXRESOPTXX/3/" \
 		    								  -e "s/XXBYPASSXX/No/" > AlphaImputeSpec3.txt
 
-	ln -sf AlphaImputeSpec1.txt AlphaImputeSpec.txt
+	ln -sf AlphaImputeSpec3.txt AlphaImputeSpec.txt
 
 
 		qsub -N S3ch${i} qsub301.sh	)
@@ -235,7 +235,7 @@ for ((i=1; i<=${nCHR}; i++)); do
 		   									  -e "s/XXRESOPTXX/4/" \
 		    								  -e "s/XXBYPASSXX/No/" > AlphaImputeSpec4.txt
 
-	ln -sf AlphaImputeSpec1.txt AlphaImputeSpec.txt
+	ln -sf AlphaImputeSpec4.txt AlphaImputeSpec.txt
 
 
 		qsub -N S4ch${i} qsub301.sh	)
