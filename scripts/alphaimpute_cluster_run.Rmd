@@ -112,7 +112,7 @@ for ((i=1; i<=${nCHR}; i++)); do
 		   									  -e "s/XXRESOPTXX/2/" \
 		    								  -e "s/XXBYPASSXX/No/" > AlphaImputeSpec2.txt
 
-	ln -sf AlphaImputeSpec1.txt AlphaImputeSpec.txt
+	ln -sf AlphaImputeSpec2.txt AlphaImputeSpec.txt
 
 
 		qsub -N S2ch${i} qsub301.sh	)
@@ -153,7 +153,7 @@ done
 cd ${work} || exit
 
 
-elif [ "$PROG" == "4" ]; then 
+elif [ "$PROG" == "5" ]; then 
 
 echo "305 - Run AlphaImpute with restart option =3"
 echo
