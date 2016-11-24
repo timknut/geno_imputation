@@ -5,7 +5,7 @@ Table of Contents
   * [Geno imputation](#geno-imputation)
     * [Purpose of this reposiory](#purpose-of-this-reposiory)
     * [Rules](#rules)
-  * [NB! Validate that Tim's silent knowledge is accounted for!](#nb-validate-that-tims-silent-knowledge-is-accounted-for)
+  * [NB! Validate that Tim's <a href="https://en.wikipedia.org/wiki/Tacit_knowledge">Tacit knowledge</a> is accounted for!](#nb-validate-that-tims-tacit-knowledge-is-accounted-for)
   * [Pipeline](#pipeline)
     * [Split collection files.](#split-collection-files)
     * [Common folder tree](#common-folder-tree)
