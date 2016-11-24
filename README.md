@@ -1,10 +1,10 @@
 Table of Contents
 =================
 
-  * [Table of Contents](#table-of-contents)
   * [Geno imputation](#geno-imputation)
     * [Purpose of this reposiory](#purpose-of-this-reposiory)
     * [Rules](#rules)
+  * [NB NB! HUSK aa validere at Tim sin tause kunnskap er hensyntatt!](#nb-nb-husk-å-validere-at-tim-sin-tause-kunnskap-er-hensyntatt)
   * [Pipeline](#pipeline)
     * [Split collection files.](#split-collection-files)
     * [Common folder tree](#common-folder-tree)
@@ -14,12 +14,13 @@ Table of Contents
     * [Convert raw-data.](#convert-raw-data)
       * [Affymetrix 55K](#affymetrix-55k)
       * [Illumina](#illumina)
+    * [Merge converted plink files](#merge-converted-plink-files)
     * [QC of converted raw data <strong>before</strong> imputation.](#qc-of-converted-raw-data-before-imputation)
       * [Suggestions for filtering:](#suggestions-for-filtering)
+    * [Convert to alphaimpute format](#convert-to-alphaimpute-format)
     * [Documentation and scripts for imputation.](#documentation-and-scripts-for-imputation)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
-
 
 # Geno imputation
 Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
@@ -41,7 +42,7 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 
 "$ioSNP" -i "$infile" -n Genomelist -o "$outfile" -u Plink
 ```
-# NB NB! HUSK å validere at Tim sin tause kunnskap er hensyntatt!
+# NB NB! HUSK aa validere at Tim sin tause kunnskap er hensyntatt!
 - [ ] **Flipping**: Illumina 50K and 777k should be flipped to the forward strand. She lists in chip-folders on the Dropbox Geno_sharing. Flipping is done by Paolo with `plink --flip`
 - [ ] **Remap 25k markers on affy 50k** Convertion list `final_corrected_Affy25K_on_50K.txt` in Dropbox.
 - [ ] **Correct subsetting of Affy 50k markers.** See list in Affy50k Dropbox folder. `final_list_to_Paolo_may_2016_affy50k_markers2_keep`
