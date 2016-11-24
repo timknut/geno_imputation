@@ -1,10 +1,11 @@
 Table of Contents
 =================
 
+  * [Table of Contents](#table-of-contents)
   * [Geno imputation](#geno-imputation)
     * [Purpose of this reposiory](#purpose-of-this-reposiory)
     * [Rules](#rules)
-  * [NB NB! HUSK aa validere at Tim sin tause kunnskap er hensyntatt!](#nb-nb-husk-å-validere-at-tim-sin-tause-kunnskap-er-hensyntatt)
+  * [NB! Validate that Tim's silent knowledge is accounted for!](#nb-validate-that-tims-silent-knowledge-is-accounted-for)
   * [Pipeline](#pipeline)
     * [Split collection files.](#split-collection-files)
     * [Common folder tree](#common-folder-tree)
