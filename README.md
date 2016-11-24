@@ -43,7 +43,7 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 
 "$ioSNP" -i "$infile" -n Genomelist -o "$outfile" -u Plink
 ```
-# NB! Validate that Tim's silent knowledge is accounted for!
+# NB! Validate that Tim's [Tacit knowledge](https://en.wikipedia.org/wiki/Tacit_knowledge) is accounted for!
 - [ ] **Flipping**: Illumina 50K and 777k should be flipped to the forward strand. She lists in chip-folders on the Dropbox Geno_sharing. Flipping is done by Paolo with `plink --flip`
 - [ ] **Remap 25k markers on affy 50k** Convertion list `final_corrected_Affy25K_on_50K.txt` in Dropbox.
 - [ ] **Correct subsetting of Affy 50k markers.** See list in Affy50k Dropbox folder. `final_list_to_Paolo_may_2016_affy50k_markers2_keep`
