@@ -52,10 +52,6 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 # Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
 
-## Split collection files.
-Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`
-The script `scripts/split_collectionfiles.sh` shows how this was done in Tims version of the REPO. 
-
 ## Common folder tree
 Look like this in Tims local repo, as of july 14. 2016.
 ```sh
@@ -81,6 +77,22 @@ tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
 16 directories
 
 ```
+
+```bash
+#Code to go from the raw data at ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
+# ftp download raw data to $prefix/ftpgeno/Raw_Data_Files and gunzip files
+prefix=/mnt/users/gjuvslan/geno/geno_imputation
+cd $prefix/genotype_rawdata
+mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
+ln -s -t illumina54k_v1 $prefix/ftpgeno/Raw_Data_Files/FinalReport_54kV1*
+ln -s -t illumina54k_v2 $prefix/ftpgeno/Raw_Data_Files/FinalReport_54kV2*
+mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
+ln -s -t illumina777k $prefix/ftpgeno/Raw_Data_Files/FinalReport_777k*
+```
+
+## Split collection files.
+Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`
+The script `scripts/split_collectionfiles.sh` shows how this was done in Tims version of the REPO.
 
 ## Automatically summarize raw data in folder tree. 
 See `genotype_rawdata/summarize_rawdata/produce_list.sh` and `genotype_rawdata/summarize_rawdata/parse_date_chip_sample_collection2.r`for a suggestionon on how to do this.
