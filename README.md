@@ -92,19 +92,18 @@ cd ..
 ```
 
 ## Split collection files.
-Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`
-The script `scripts/split_collectionfiles.sh` shows how this was done in Tims version of the REPO.
+Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`. The script [split_collectionfiles.sh](scripts/split_collectionfiles.sh) shows how this was done in Tims version of the REPO.
 
 ```bash
 # Split the collections, ~2 min
 cd genotype_rawdata/illumina54k_v2/collections/
-time awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection_ed1.txt
-time awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection2.txt
+awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection_ed1.txt
+awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection2.txt
 cd ../../..
 ```
 
 ## Automatically summarize raw data in folder tree. 
-See `genotype_rawdata/summarize_rawdata/produce_list.sh` and `genotype_rawdata/summarize_rawdata/parse_date_chip_sample_collection2.r`for a suggestionon on how to do this.
+See [produce_list.sh](genotype_rawdata/summarize_rawdata/produce_list.sh) and [parse_date_chip_sample_collection2.r](genotype_rawdata/summarize_rawdata/parse_date_chip_sample_collection2.r) for a suggestion on how to do this.
 
 **Produces the folllowing table:**
 
@@ -118,10 +117,11 @@ See `genotype_rawdata/summarize_rawdata/produce_list.sh` and `genotype_rawdata/s
 |16366330_1103 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
 
 ## Prepare marker map files.  
-ioSNP.py will create the plink map file, which is a better solution than doing it manually in R. 
+ioSNP.py will create the plink map file, which is a better solution than doing it manually in R.
+
 ### Convert annotation file to map file accepted by ioSNP.py
-Annotation files can be [downloaded from SNPchimp](http://bioinformatics.tecnoparco.org/SNPchimp/index.php/download/download-cow-data)
-After `gunzipping`, something like the following creates the .map annotation file needed. 
+Annotation files can be [downloaded from SNPchimp](http://bioinformatics.tecnoparco.org/SNPchimp/index.php/download/download-cow-data). After `gunzipping`, something like the following creates the .map annotation file needed. 
+
 ```sh
 awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > illumina54k_v2_annotationfile.map
 ```
