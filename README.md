@@ -101,6 +101,8 @@ Some of the files are collections of Illumina MATRIX-format files. See eg. `geno
 cd genotype_rawdata/illumina54k_v2/collections/
 awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection_ed1.txt
 awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection2.txt
+mv FinalReport_54kV2_collection_ed1.txt Collection_FinalReport_54kV2_collection_ed1.txt
+mv FinalReport_54kV2_collection2.txt Collection_FinalReport_54kV2_collection2.txt
 cd ../../..
 ```
 
