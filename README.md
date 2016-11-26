@@ -95,6 +95,14 @@ cd ..
 Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`
 The script `scripts/split_collectionfiles.sh` shows how this was done in Tims version of the REPO.
 
+```bash
+# Split the collections, ~2 min
+cd genotype_rawdata/illumina54k_v2/collections/
+time awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection_ed1.txt
+time awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection2.txt
+cd ../../..
+```
+
 ## Automatically summarize raw data in folder tree. 
 See `genotype_rawdata/summarize_rawdata/produce_list.sh` and `genotype_rawdata/summarize_rawdata/parse_date_chip_sample_collection2.r`for a suggestionon on how to do this.
 
