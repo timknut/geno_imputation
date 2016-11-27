@@ -118,6 +118,26 @@ See [produce_list.sh](genotype_rawdata/summarize_rawdata/produce_list.sh) and [p
 |16538211_637  |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
 |16366330_1103 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
 
+```bash
+#grep Illumina FinalReports for headers, normalize whitespace and create table
+grep -A 8 -m 1 "\[Header" illumina*/*/Final* illumina*/Final* | grep -v -e "\[" -e "--" > tmp
+sed -i -e s/Processing\\t/Processing" "/g -e s/Num\\t/Num" "/g -e s/Total\\t/Total" "/g tmp
+sed -i -e s/GSGT\\t/GSGT" "/g -e s/2010\\t/2010" "/g -e s/54\\t/54" "/g tmp
+sed -i -e s/bovinehd-manifest-b.bpm/bovinehd_manifest_b.bpm/g -e 's/\r$//' tmp
+cat tmp | sed -e s/-/\\t/g -e s/\\t\\t/\\t/g > illumina_headers
+
+## grep Illumina FinalReports for ids, normalize whitespace and create table of filenames and ids
+# 1. files in GenomeMatrix format
+matrixfiles=illumina54k_v2/collections/*" "illumina777k/FinalReport_777k_apr2015.txt" "illumina777k/FinalReport_777k_jun2015.txt" "illumina54k_v2/FinalReport_54kV2_nov2011_ed1.txt" "illumina777k/FinalReport_777k.txt
+grep -A 1 -m 1 "\[Data" $matrixfiles | grep -v -e "\[Data" -e "--" > tmp 
+sed -i -e s/FinalReport_777k.txt-2402/FinalReport_777k.txt-\\t2402/g tmp #FinalReport_777k.txt lacks tab before first ID
+cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print $1,$i}' > illumina_ids
+
+# 2. files in GenomeList format (~5 min)
+listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt
+time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
+```
+
 ## Prepare marker map files.  
 ioSNP.py will create the plink map file, which is a better solution than doing it manually in R.
 
