@@ -80,14 +80,16 @@ tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
 
 ```bash
 # Code to go from the raw data at ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
-# ftp download raw data to $prefix/ftpgeno/Raw_Data_Files and gunzip files
-prefix=/mnt/users/gjuvslan/geno/geno_imputation
+# ftp download raw data to $ftpgeno and gunzip files
+ftpgeno=/mnt/users/gjuvslan/geno/geno_imputation/ftpgeno
 cd genotype_rawdata
 mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
-ln -s -t illumina54k_v1 $prefix/ftpgeno/Raw_Data_Files/FinalReport_54kV1*
-ln -s -t illumina54k_v2 $prefix/ftpgeno/Raw_Data_Files/FinalReport_54kV2*
+ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Nordic_*
+ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
+ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
+ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
-ln -s -t illumina777k $prefix/ftpgeno/Raw_Data_Files/FinalReport_777k*
+ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
 cd ..
 ```
 
