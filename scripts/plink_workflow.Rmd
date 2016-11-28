@@ -91,10 +91,11 @@
 ./plink --bfile merge777k_cleaned_update--cow --het --out het_illumina54k
 ./plink --bfile merge54k_affymetrix_update --cow --het --out het_affymetrix
 
-#deletion of the ID's that failed the hetero test
-./plink --bfile merge54k_cleaned1_update  --cow --remove hetero_remove --make-bed --out merge54k_update1
-./plink --bfile merge777k_cleaned_update --cow --remove hetero_remove --make-bed --out merge777k_update1
-./plink --bfile merge54k_affymetrix_update --cow --remove hetero_remove --make-bed --out merge54k_affymetrix_update1
+#deletion of the ID's that failed the hetero test (NOTE: you must have one hetero_remove for each array). The R script that produce the file is called hetero_geno.R. You need to run it for each array you have.
+
+./plink --bfile merge54k_cleaned1_update  --cow --remove hetero_remove1 --make-bed --out merge54k_update1
+./plink --bfile merge777k_cleaned_update --cow --remove hetero_remove2 --make-bed --out merge777k_update1
+./plink --bfile merge54k_affymetrix_update --cow --remove hetero_remove3 --make-bed --out merge54k_affymetrix_update1
 
 #7.CONVERSION OF ALL THE FILES INTO ATCG FORMAT (THIS PASSAGE IS NOT FUNDAMENTAL)
 
