@@ -1,0 +1,98 @@
+---
+title: "Summary of genotyped animals"
+author: "Arne B. Gjuvsland"
+date: "11/27/2016"
+output: html_document
+---
+
+<!-- override stupid r markdown default, http://stackoverflow.com/questions/24603003/changing-the-maximum-width-of-r-markdown-documents -->
+<style type="text/css"> body .main-container { max-width: 80%; } </style>
+
+<!-- Javascript interactivity for tables.
+Docs at http://datatables.net/
+Modified from http://holgerbrandl.github.io/2015/03/12/sortable-searchable-paginated-tables-with-knitr-and-jquerydatatables/
+Custom selection of components (responsive) from https://datatables.net/download/ -->
+
+<!-- Unfortunately, pandoc has a problem with datatables on Windows, probably due to path formatting -->
+
+`r if (Sys.info()["sysname"] == "Windows") "<!--" else ""`
+
+<link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/r/dt/jq-2.1.4,dt-1.10.9,cr-1.2.0,r-1.0.7/datatables.min.css"/>
+ 
+<script src="https://cdn.datatables.net/r/dt/jq-2.1.4,dt-1.10.9,cr-1.2.0,r-1.0.7/datatables.min.js"></script>
+
+<script>
+  $(document).ready(function() {
+    $("table").DataTable( {
+      responsive: true,
+      paging: false
+    } );
+  } );
+</script>
+
+`r if (Sys.info()["sysname"] == "Windows") "-->" else ""`
+
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(rmarkdown.df_print = FALSE)
+library(data.table)
+library(ggplot2)
+library(knitr)
+```
+
+## Illumina genotypes
+
+```{r read_illumina}
+#read in illumina summary files
+chiptab <- dcast(fread('../genotype_rawdata/illumina_headers',header=F),V1~V2,value.var='V3')
+setnames(chiptab,c('Path','BSGTver','Chip','GSGTver','NumSNPs','NumInd','ProcDate','TotSNPs','TotInd'))
+chiptab <- chiptab[,`:=`(NumSNPs=as.numeric(NumSNPs),TotSNPs=as.numeric(TotSNPs),NumInd=as.numeric(NumInd),TotInd=as.numeric(TotInd))]
+chiptab <- chiptab[,Date:=as.Date(strsplit(ProcDate,' ')[[1]][1],format='%m/%d/%Y'),by=rownames(chiptab)]
+chiptab <- chiptab[,Folder:=strsplit(Path,'/')[[1]][1],by=rownames(chiptab)]
+indtab <- fread('../genotype_rawdata/illumina_ids',header=F)
+setnames(indtab,c('Path','ID'))
+illuminatab <- merge(indtab,chiptab,by='Path',all=T)
+```
+```{r illumina_results}
+kable(chiptab[,.(Path,NumSNPs,NumInd,Date)],caption='Overview of all Illumina files')
+kable(illuminatab[,.N,by=c('Path','TotInd','NumInd')][NumInd!=N],caption='FinalReport files where NumInd and number of IDs do not match')
+```
+
+```{r read_affy}
+#affymetrics chips
+if(file.exists('../genotype_rawdata/affytab.RData'))
+  {
+	load('../genotype_rawdata/affytab.RData')
+} else {
+	rawdata <- "/mnt/users/gjuvslan/geno/geno_imputation/genotype_rawdata"
+	affyfiles <- c('Swedish_54k_ed1.txt','Nordic_54k_2012_ed1.txt','Nordic_54k.txt','Nordic_HDexchange_201110.txt') 
+
+	affydata<-NULL
+	for (file in affyfiles)
+	{
+	  print(file)
+	  folder <- 'affymetrix54k'
+	  res <- fread(paste(rawdata,folder,file,sep="/"),header=F,select=1:2)
+	  res$Folder <- folder
+	  res$Path <- paste(folder,file,sep="/")
+	  affydata <- rbind(affydata,res)
+	}
+	affytab <- affydata[,.(NumSNPs=length(unique(V1)),NumInd=length(unique(V2)),ID=unique(V2)),by=c('Path','Folder')]
+	save(affytab,file='../genotype_rawdata/affytab.RData')
+}
+affytab$Chip <- 'Affymetrix54k'
+```
+
+## Affymetrix genotypes
+
+```{r results_affy}
+kable(affytab[,.N,by=.(Path,NumSNPs,NumInd,Chip)],caption='Overview of Affymetrix files')
+```
+
+## Full table of genotyped individuals
+
+```{r results_full}
+kable(rbind(illuminatab,affytab,fill=T)[,.(Path,ID,Chip,NumSNPs,NumInd,Date)],caption='Full table of genotyped individuals')
+```
