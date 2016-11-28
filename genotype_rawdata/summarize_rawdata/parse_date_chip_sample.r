@@ -37,15 +37,17 @@ final_table <- inner_join(file_and_samples_tidy, date_and_chip_sep_2) %>%
   select(sample_id = sample, processing_date, chip, file_path, file) %>% 
   arrange(processing_date)
 
+rm(list=ls(pattern="file"))
+rm(list=ls(pattern="date"))
 
-# Join in Paolos info -----------------------------------------------------
-head(final_table) %>% knitr::kable()
-count(final_table, sample_id, sort = T) %>% 
-  count(n)
-
-arrange(final_table, sample_id, processing_date) %>% 
-  cigeneR::show_duplicates("sample_id") %>% select(1:2) %>% 
-  group_by(sample_id) %>% 
-  mutate(ranking = min_rank(processing_date)) %>% 
-  mutate(max = max(ranking)) %>% 
-  filter(ranking == max)
+# # Join in Paolos info -----------------------------------------------------
+# head(final_table) %>% knitr::kable()
+# count(final_table, sample_id, sort = T) %>% 
+#   count(n)
+# 
+# arrange(final_table, sample_id, processing_date) %>% 
+#   cigeneR::show_duplicates("sample_id") %>% select(1:2) %>% 
+#   group_by(sample_id) %>% 
+#   mutate(ranking = min_rank(processing_date)) %>% 
+#   mutate(max = max(ranking)) %>% 
+#   filter(ranking == max)
