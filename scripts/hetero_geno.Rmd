@@ -1,0 +1,37 @@
+### R script hetero_geno
+
+* Script necessary to obtain the file hetero_remove used in step 6 of the plink_workflow.Rmd
+
+```{r}
+setwd(' the directory where the file is located')
+library(data.table)
+
+#RUN THIS FOR EACH ARRAY YOU HAVE.  I did it 3 times (one for illumina 54k, one for illumina 777k and one for affymetrix 54k)
+data <- fread('data.het',data.table=F)
+data$meanHet = (data[,5] - data[,3]) / data[,5]
+
+#+- 3sd from the hetero mean
+mean_pop=mean(data$meanHet)
+sd_pop=sd(data$meanHet)
+
+minus_ind=(which(data$meanHet<=(mean_pop-(3*(sd_pop)))))
+plus_ind=(which(data$meanHet>=(mean_pop+(3*(sd_pop)))))
+
+
+minus=data[minus_ind,2]
+plus=data[plus_ind,2]
+
+final=append(minus,plus)
+
+Fam=rep('F0',(length(plus)+length(minus)))
+
+data_final=cbind(Fam,final)
+data_final=data_final[!duplicated(data_final[,2]),]
+
+#change the name hetero_remove according to the array (hetero_remove1, hetero_remove2 or hetero_remove3 in the workflow)
+write.table(data_final,'/path/hetero_remove',row.names = F,col.names = F,quote = F,sep="\t")
+
+
+###END
+
+```

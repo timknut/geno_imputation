@@ -47,7 +47,9 @@ ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
 - [ ] **Flipping**: Illumina 50K and 777k should be flipped to the forward strand. She lists in chip-folders on the Dropbox Geno_sharing. Flipping is done by Paolo with `plink --flip`
 - [ ] **Remap 25k markers on affy 50k** Convertion list `final_corrected_Affy25K_on_50K.txt` in Dropbox.
 - [ ] **Correct subsetting of Affy 50k markers.** See list in Affy50k Dropbox folder. `final_list_to_Paolo_may_2016_affy50k_markers2_keep`
-- [ ] **Markers wrongly positioned because of assembly problems** See `assembly_fail_markers_to_exclude_*` in affy50k and illumina 777k folders in Dropbox. 
+- [ ] **Markers wrongly positioned because of assembly problems** See `assembly_fail_markers_to_exclude_*` in affy50k and illumina 777k folders in Dropbox.
+- [ ] **Have Paolo recieved and included the latest Affymetrix data?**
+- [ ] **Keep most recent or higher density sample** when same sample is genotyped on same or several platforms. 
 
 # Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
