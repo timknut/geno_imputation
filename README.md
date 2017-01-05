@@ -86,12 +86,14 @@ tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
 ftpgeno=/mnt/users/gjuvslan/geno/geno_imputation/ftpgeno
 cd genotype_rawdata
 mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
-ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Nordic_*
-ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
+ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
+ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_*
+ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
 ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
+ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Batch*.calls.txt 
 cd ..
 ```
 
@@ -140,6 +142,14 @@ cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print 
 # 2. files in GenomeList format (~5 min)
 listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt
 time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
+
+#Affymetrix reports
+grep -E "time-str|chip-type|cel-count" affymetrix54k/Batch* > tmp
+sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
+sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
+
+grep probeset affymetrix54k/Batch* | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
+sed -e s/:probeset//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
 ```
 
 ## Prepare marker map files.  
