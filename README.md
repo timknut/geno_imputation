@@ -156,11 +156,24 @@ sed -e s/:probeset//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
 ioSNP.py will create the plink map file, which is a better solution than doing it manually in R.
 
 ### Convert annotation file to map file accepted by ioSNP.py
-Annotation files can be [downloaded from SNPchimp](http://bioinformatics.tecnoparco.org/SNPchimp/index.php/download/download-cow-data). After `gunzipping`, something like the following creates the .map annotation file needed. 
+Annotation files for 50Kv1&v2 and 777K Illumina chips was [downloaded from SNPchimp](http://bioinformatics.tecnoparco.org/SNPchimp/index.php/download/download-cow-data) and the tab-separated gzipped raw files are in [genotype_rawdata/marker_mapfiles/snpchimp/](genotype_rawdata/marker_mapfiles/snpchimp/). The SNP positions refer to a particular genom assembly and choosing "Native platform" will not give consistent SNP positions across chips, we should therefore use the "UMD3.1" positions when creating plink files, see [snpchimp.Rmd](genotype_rawdata/marker_mapfiles/snpchimp/snpchimp.Rmd) / [snpchimp.pdf](genotype_rawdata/marker_mapfiles/snpchimp/snpchimp.pdf) for details on the SNPchimp data.
 
-```sh
-awk 'NR > 1 {print $4,$6,0,$5}' OFS='\t' illumina54k_v2_annotationfile.txt > illumina54k_v2_annotationfile.map
+```bash
+cd genotype_rawdata/marker_mapfiles/
+#marker map files with Native platform positions
+zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv1_annotationfile_native.map
+zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv2_annotationfile_native.map
+zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_native.map
+
+#marker map files with UMD3.1 dbSNP positions
+zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv1_annotationfile_umd3_1.map
+zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv2_annotationfile_umd3_1.map
+zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_umd3_1.map
+
+cd ../..
 ```
+
+
 ## Convert raw-data.
 1. Describe convertion workflow and location of scripts.
 
