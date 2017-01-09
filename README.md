@@ -89,10 +89,11 @@ mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections il
 ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
-ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_*
+ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_54k*
 ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
 ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
+ln -s -t illumina777k/ $ftpgeno/Raw_Data_Files/Nordic_HDexchange_201110.txt
 ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Batch*.calls.txt 
 cd ..
 ```
