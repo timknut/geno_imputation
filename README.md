@@ -147,9 +147,14 @@ time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{pr
 grep -E "time-str|chip-type|cel-count" affymetrix54k/Batch* > tmp
 sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
 sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
+for file in $(ls affymetrix54k/Batch*)
+do 
+  echo "Counting SNPs in $file"
+  echo -n -e "$file\tNum SNPs\t$(grep AX-[[:digit:]]* $file | cut -f 1 | wc -l)\n" >> affymetrix_headers
+done
 
 grep probeset affymetrix54k/Batch* | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
-sed -e s/:probeset//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
+sed -e s/:probeset_id//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
 ```
 
 ## Prepare marker map files.  
