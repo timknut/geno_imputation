@@ -89,10 +89,11 @@ mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections il
 ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
-ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_*
+ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_54k*
 ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
 ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
+ln -s -t illumina777k/ $ftpgeno/Raw_Data_Files/Nordic_HDexchange_201110.txt
 ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Batch*.calls.txt 
 cd ..
 ```
@@ -111,18 +112,8 @@ cd ../../..
 ```
 
 ## Automatically summarize raw data in folder tree. 
-See [produce_list.sh](genotype_rawdata/summarize_rawdata/produce_list.sh) and [parse_date_chip_sample_collection2.r](genotype_rawdata/summarize_rawdata/parse_date_chip_sample_collection2.r) for a suggestion on how to do this.
 
-**Produces the folllowing table:**
-
-|sample_id     |processing_date     |chip           |file_path       |file |
-|:-------------|:-------------------|:--------------|:---------------|:----|
-|11210365_2029 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
-|11210181_1098 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
-|15670347_1067 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
-|16366250_1562 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
-|16538211_637  |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
-|16366330_1103 |2015-08-27 13:31:00 |BovineSNP50_v2 |collection2/xaa |xaa  |
+The bash code below extracts key information from the raw data files, and this is collected into a full report in [reports/genotypereport.Rmd](reports/genotypereport.Rmd) .
 
 ```bash
 #grep Illumina FinalReports for headers, normalize whitespace and create table

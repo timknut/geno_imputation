@@ -21,56 +21,82 @@ library(DT)
 
 ## Illumina genotypes
 
-```{r read_illumina}
+```{r read_illumina_headers, echo=F}
 #read in illumina summary files
-chiptab <- dcast(fread('../genotype_rawdata/illumina_headers',header=F),V1~V2,value.var='V3')
+chiptab <- dcast(fread('genotype_rawdata/illumina_headers',header=F),V1~V2,value.var='V3')
 setnames(chiptab,c('Path','BSGTver','Chip','GSGTver','NumSNPs','NumInd','ProcDate','TotSNPs','TotInd'))
 chiptab <- chiptab[,`:=`(NumSNPs=as.numeric(NumSNPs),TotSNPs=as.numeric(TotSNPs),NumInd=as.numeric(NumInd),TotInd=as.numeric(TotInd))]
 chiptab <- chiptab[,Date:=as.Date(strsplit(ProcDate,' ')[[1]][1],format='%m/%d/%Y'),by=rownames(chiptab)]
 chiptab <- chiptab[,Folder:=strsplit(Path,'/')[[1]][1],by=rownames(chiptab)]
-indtab <- fread('../genotype_rawdata/illumina_ids',header=F)
+indtab <- fread('genotype_rawdata/illumina_ids',header=F)
 setnames(indtab,c('Path','ID'))
-illuminatab <- merge(indtab,chiptab,by='Path',all=T)
+illuminatab_h <- merge(indtab,chiptab,by='Path',all=T)
 ```
 
-```{r illumina_results}
-datatable(chiptab[,.(Path,NumSNPs,NumInd,Date)],caption='Overview of all Illumina files')
+```{r read_illumina_reports_noheader, echo=F}
+folders <- c('illumina25k','illumina54k_v2','illumina54k_v2','illumina54k_v2','illumina777k')
+reports <- c('FinalReport_25k.txt','Swedish_54k_ed1.txt','Nordic_54k_2012_ed1.txt','Nordic_54k.txt','Nordic_HDexchange_201110.txt')
+
+chiptab_nh<- data.table()
+illuminatab_nh <- data.table()
+for (i in 1:length(folders))
+{
+  #print(reports[i])
+  filename <- paste('genotype_rawdata/',folders[i],'/',reports[i],'.RData',sep="")
+  if (file.exists(filename))
+  {
+    load(filename)
+  } else {
+    chipdata<- fread(paste('genotype_rawdata',folders[i],reports[i],sep='/'),header=F,select=c(1,2))
+    snps <- unique(chipdata$V1)
+    ids <- unique(chipdata$V2)
+    save(snps,ids,file=filename)
+  }
+  chiptab_nh <- rbind(chiptab_nh,data.table(Path=paste(folders[i],reports[i],sep="/"),Chip=folders[i],NumSNPs=length(snps),NumInd=length(ids),Folder=folders[i]),fill=T)
+  illuminatab_nh <- rbind(illuminatab_nh,data.table(Path=paste(folders[i],reports[i],sep="/"),Id=ids,Chip=folders[i],NumSNPs=length(snps),NumInd=length(ids),Folder=folders[i]),fill=T)
+}
+```
+
+```{r illumina_overview, echo=F}
+#merge data from report with and without header section
+chiptab_illumina <- rbind(chiptab,chiptab_nh,fill=T)
+illuminatab <- rbind(illuminatab_h,illuminatab_nh,fill=T)
+
+#create overview tables
+datatable(chiptab_illumina[,.(Folder,NumSNPs,NumInd,Date,Path,Chip)],caption='Overview of Illumina files')
 datatable(illuminatab[,.N,by=c('Path','TotInd','NumInd')][NumInd!=N],caption='FinalReport files where NumInd and number of IDs do not match')
 ```
 
 ## Affymetrix genotypes
 
-```{r read_affy}
-#affymetrics chips
-if(file.exists('../genotype_rawdata/affytab.RData'))
-  {
-	load('../genotype_rawdata/affytab.RData')
-} else {
-	rawdata <- "/mnt/users/gjuvslan/geno/geno_imputation/genotype_rawdata"
-	affyfiles <- c('Swedish_54k_ed1.txt','Nordic_54k_2012_ed1.txt','Nordic_54k.txt','Nordic_HDexchange_201110.txt') 
+```{r read_affymetrix_reports, echo=F, message=F, warning=F}
 
-	affydata<-NULL
-	for (file in affyfiles)
-	{
-	  print(file)
-	  folder <- 'affymetrix54k'
-	  res <- fread(paste(rawdata,folder,file,sep="/"),header=F,select=1:2)
-	  res$Folder <- folder
-	  res$Path <- paste(folder,file,sep="/")
-	  affydata <- rbind(affydata,res)
-	}
-	affytab <- affydata[,.(NumSNPs=length(unique(V1)),NumInd=length(unique(V2)),ID=unique(V2)),by=c('Path','Folder')]
-	save(affytab,file='../genotype_rawdata/affytab.RData')
-}
-affytab$Chip <- 'Affymetrix54k'
+#read in summary files
+chiptab_affy <- dcast(fread('genotype_rawdata/affymetrix_headers',header=F),V1~V2,value.var='V3')
+setnames(chiptab_affy,c('Path','Chip','ProcDate','NumInd','NumSNPs'))
+chiptab_affy <- chiptab_affy[,Folder:=strsplit(Path,split="/")[[1]][1],by=Path]
+chiptab_affy <- chiptab_affy[,Date:=as.Date(ProcDate,format='%a %b %d %T %Y'),by='Path']
+chiptab_affy <- chiptab_affy[,Chip:=sub(Chip,'Axiom_AFFY_NRF,Axiom_AFFY_NRF.r1','Axiom_AFFY_NRF.r1'),by='Path']
+chiptab_affy <- chiptab_affy[,`:=`(NumInd=as.numeric(NumInd),NumSNPs=as.numeric(NumSNPs))]
+indtab_affy <- fread('genotype_rawdata/affymetrix_ids',header=F)
+setnames(indtab_affy,c('Path','ID'))
+affymetrixtab <- merge(indtab_affy,chiptab_affy,by='Path',all=T)
+
 ```
 
-```{r results_affy}
-datatable(affytab[,.N,by=.(Path,NumSNPs,NumInd,Chip)],caption='Overview of Affymetrix files')
+```{r results_affy,echo=F}
+datatable(chiptab_affy[,.(Folder,NumSNPs,NumInd,Date,Path,Chip)],caption='Overview of Affymetrix files')
+```
+
+## Summary 
+
+```{r results_summary, echo=F, warnings=F}
+chiptab_all <- rbind(chiptab_illumina,chiptab_affy,fill=T)
+datatable(chiptab_all[,.(N_chips=.N,N_ind=sum(NumInd),From=min(Date,na.rm=T),To=max(Date,na.rm=T)),by='Folder'],caption='Summary table showing number of chips of each type, the number of individual samples genotyped on each and the time period they have been used.')
 ```
 
 ## Full table of genotyped individuals
 
-```{r results_full}
-datatable(rbind(illuminatab,affytab,fill=T)[,.(Path,ID,Chip,NumSNPs,NumInd,Date)],caption='Full table of genotyped individuals')
+```{r results_full, echo=F}
+datatable(rbind(illuminatab,affymetrixtab,fill=T)[,.(Path,ID,Chip,NumSNPs,NumInd,Date)],caption='Full table of genotyped individuals')
 ```
