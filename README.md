@@ -116,6 +116,8 @@ cd ../../..
 The bash code below extracts key information from the raw data files, and this is collected into a full report in [reports/genotypereport.Rmd](reports/genotypereport.Rmd) .
 
 ```bash
+cd genotype_rawdata
+
 #grep Illumina FinalReports for headers, normalize whitespace and create table
 grep -A 8 -m 1 "\[Header" illumina*/*/Final* illumina*/Final* | grep -v -e "\[" -e "--" > tmp
 sed -i -e s/Processing\\t/Processing" "/g -e s/Num\\t/Num" "/g -e s/Total\\t/Total" "/g tmp
@@ -137,8 +139,11 @@ listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.t
 time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
 for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
+# 3. files in Genomelist format, but without headers
+listfiles_nh=illumina54k_v2/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt
+for file in $listfiles_nh; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
-#Affymetrix reports
+## Affymetrix reports
 grep -E "time-str|chip-type|cel-count" affymetrix54k/Batch* > tmp
 sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
 sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
@@ -150,6 +155,8 @@ done
 
 grep probeset affymetrix54k/Batch* | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
 sed -e s/:probeset_id//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
+
+cd ..
 ```
 
 ## Prepare marker map files.  
