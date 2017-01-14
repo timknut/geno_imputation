@@ -90,7 +90,7 @@ ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
 ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_54k*
-ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
+ln -s -t illumina54k_v1/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
 ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
 ln -s -t illumina777k/ $ftpgeno/Raw_Data_Files/Nordic_HDexchange_201110.txt
@@ -127,7 +127,7 @@ cat tmp | sed -e s/-/\\t/g -e s/\\t\\t/\\t/g > illumina_headers
 
 ## grep Illumina FinalReports for ids, normalize whitespace and create table of filenames and ids
 # 1. files in GenomeMatrix format
-matrixfiles=illumina54k_v2/collections/*" "illumina777k/FinalReport_777k_apr2015.txt" "illumina777k/FinalReport_777k_jun2015.txt" "illumina54k_v2/FinalReport_54kV2_nov2011_ed1.txt" "illumina777k/FinalReport_777k.txt
+matrixfiles=illumina54k_v2/collections/Final*" "illumina777k/FinalReport_777k_apr2015.txt" "illumina777k/FinalReport_777k_jun2015.txt" "illumina54k_v2/FinalReport_54kV2_nov2011_ed1.txt" "illumina777k/FinalReport_777k.txt
 grep -A 1 -m 1 "\[Data" $matrixfiles | grep -v -e "\[Data" -e "--" > tmp 
 sed -i -e s/FinalReport_777k.txt-2402/FinalReport_777k.txt-\\t2402/g tmp #FinalReport_777k.txt lacks tab before first ID
 cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print $1,$i}' > illumina_ids
@@ -140,7 +140,7 @@ time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{pr
 for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
 # 3. files in Genomelist format, but without headers
-listfiles_nh=illumina54k_v2/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt
+listfiles_nh=illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt
 for file in $listfiles_nh; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
 ## Affymetrix reports

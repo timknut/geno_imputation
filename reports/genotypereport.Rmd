@@ -34,7 +34,7 @@ illuminatab_h <- merge(indtab,chiptab,by='Path',all=T)
 ```
 
 ```{r read_illumina_reports_noheader, echo=F}
-folders <- c('illumina25k','illumina54k_v2','illumina54k_v2','illumina54k_v2','illumina777k')
+folders <- c('illumina25k','illumina54k_v1','illumina54k_v2','illumina54k_v2','illumina777k')
 reports <- c('FinalReport_25k.txt','Swedish_54k_ed1.txt','Nordic_54k_2012_ed1.txt','Nordic_54k.txt','Nordic_HDexchange_201110.txt')
 
 chiptab_nh<- data.table()
