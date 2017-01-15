@@ -167,15 +167,18 @@ Annotation files for 50Kv1&v2 and 777K Illumina chips was [downloaded from SNPch
 
 ```bash
 cd genotype_rawdata/marker_mapfiles/
-#marker map files with Native platform positions
+#marker map files for Illumina chips with Native platform positions
 zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv1_annotationfile_native.map
 zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv2_annotationfile_native.map
 zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_native.map
 
-#marker map files with UMD3.1 dbSNP positions
+#marker map files for Illumina chips with UMD3.1 dbSNP positions
 zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv1_annotationfile_umd3_1.map
 zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv2_annotationfile_umd3_1.map
 zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_umd3_1.map
+
+#marker map file for Affymetrix 50K chip
+cut -f 1-4 affy50k_annotation_final_list_20160715.txt > affymetrix50K.map
 
 cd ../..
 ```
@@ -224,7 +227,7 @@ done
 ## Convert Plink text input files to binary files
 
 ```bash
-# convert all .ed and .map files to Plink binary files
+# convert all .ped and .map files to Plink binary files
 for chip in illumina54k_v1 illumina54k_v2 illumina777k
 do
     for file in `grep $chip genotype_rawdata/illumina_formats | gawk '{print $1}'`
