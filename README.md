@@ -189,12 +189,20 @@ cd ../..
 Convert the Affymetrix and Illumina genotype report files to Plink standard [text input files (.ped)](https://www.cog-genomics.org/plink2/formats#ped) files paired up with matching [.map](https://www.cog-genomics.org/plink2/formats#map) files.
 
 ### Affymetrix 55K
-Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py
+Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py to convert from Affymetrix format to Geno format. Then use ioSNP.py to convert from Geno to Plink text input format.
 
-usage: `seqreport.py -m genotype_rawdata/marker_mapfiles/affy50k_annotation_final_list_20160715.txt -r [dummy reportfilename] -o outfile_semi.ped [Affy .call file]`
+```bash
+snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/
+export PATH=$PATH:$snptranslatepath
 
-2. Define file structure for converted data.
-
+#Convert Affymetrix 50K files
+for affycall in `gawk '{print $1}' genotype_rawdata/affymetrix_headers | sort | uniq`
+do
+    echo -e "Converting Affymetrix report file: "$affycall"\tMarkermap: "$markermap_affy
+    time seqreport_edit.py -m $markermap_affy -o genotype_data/plink_txt/$(basename $affycall) -r genotype_data/reports/$(basename $affycall).seqreport genotype_rawdata/$affycall
+    ioSNP.py -i genotype_data/plink_txt/$(basename $affycall) -n Geno -o genotype_data/plink_txt/$(basename $affycall).ped -u Plink --output2 genotype_data/plink_txt/$(basename $affycall).map -m genotype_rawdata/marker_mapfiles/affymetrix50K.map
+done
+```
 ### Illumina
 
 Use ioSNP.py to convert all Finalreport files.
@@ -228,9 +236,9 @@ done
 
 ```bash
 # convert all .ped and .map files to Plink binary files
-for chip in illumina54k_v1 illumina54k_v2 illumina777k
+for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
-    for file in `grep $chip genotype_rawdata/illumina_formats | gawk '{print $1}'`
+    for file in `grep -h $chip genotype_rawdata/illumina_formats genotype_rawdata/affymetrix_headers | gawk '{print $1}' | sort | uniq`
     do  
         time plink --cow --file genotype_data/plink_txt/$(basename $file) --out genotype_data/plink_bin/$(basename $file)  
     done 
