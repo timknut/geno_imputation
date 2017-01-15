@@ -181,8 +181,9 @@ cd ../..
 ```
 
 
-## Convert raw-data.
-1. Describe convertion workflow and location of scripts.
+## Convert raw-data to Plink text input files
+
+Convert the Affymetrix and Illumina genotype report files to Plink standard [text input files (.ped)](https://www.cog-genomics.org/plink2/formats#ped) files paired up with matching [.map](https://www.cog-genomics.org/plink2/formats#map) files.
 
 ### Affymetrix 55K
 Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py
@@ -192,14 +193,53 @@ usage: `seqreport.py -m genotype_rawdata/marker_mapfiles/affy50k_annotation_fina
 2. Define file structure for converted data.
 
 ### Illumina
-Use `scripts/Genome_2_plink.sh` : 
 
-Script takes an illumina Finalreport in standard (GenomeList) or Matrix (Genomematrix) format and outputs
-a plink *.ped and *.map file automatically named plink_format/[infile].ped/map
-See the [Genomestudio documentation](http://support.illumina.com/content/dam/illumina-support/documents/documentation/software_documentation/genomestudio/genomestudio-2-0/genomestudio-genotyping-module-v2-user-guide-11319113-01.pdf) page 61. for details. 
-Convertion is done by calling snptranslate present in this repo.
+Use ioSNP.py to convert all Finalreport files.
 
-Usage: `sh scripts/Genome_2_plink.sh [FinalReport file] [input-format](Genomelist or Genomematrix) [markerfile]`
+```bash
+snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/
+export PATH=$PATH:$snptranslatepath
+
+## Assign marker position maps for each chip
+declare -A markermap=([illumina54k_v1]=illumina50Kv1_annotationfile_umd3_1.map [illumina54k_v2]=illumina50Kv2_annotationfile_umd3_1.map [illumina777k]=illumina777K_annotationfile_umd3_1.map)
+
+## Loop over chips and convert all genotype report files to .ped format 
+for chip in "${!markermap[@]}"
+do     
+    for report in `grep $chip genotype_rawdata/illumina_formats | gawk '{print $1}'`
+    do
+        pedfile=genotype_data/plink_txt/$(basename $report).ped
+        if [ -e $pedfile ]
+        then
+            echo "Skipping conversion of: "$report", plink input file exists: "$pedfile
+        else
+            echo -e "Converting Illumina report file: "$report"\tMarkermap: "${markermap[$chip]}  
+            informat=$(grep $report[[:space:]] genotype_rawdata/illumina_formats | gawk '{print $2}')
+            ioSNP.py -i genotype_rawdata/$report -n $informat -o $pedfile".tmp" -u Plink --output2 genotype_data/plink_txt/$(basename $report).map -m genotype_rawdata/marker_mapfiles/${markermap[$chip]} && mv $pedfile".tmp" $pedfile
+        fi
+    done
+done
+```
+
+## Convert Plink text input files to binary files
+
+```bash
+# convert all .ed and .map files to Plink binary files
+for chip in illumina54k_v1 illumina54k_v2 illumina777k
+do
+    for file in `grep $chip genotype_rawdata/illumina_formats | gawk '{print $1}'`
+    do  
+        time plink --cow --file genotype_data/plink_txt/$(basename $file) --out genotype_data/plink_bin/$(basename $file)  
+    done 
+done
+
+#parse plink logs to extract table with number of SNPs and individuals
+for file in genotype_data/plink_bin/*.log
+do  
+    echo -n $(echo $file | sed s/.log//)
+    grep single-pass $file | gawk -F "[( ,)]" '{print "\t"$6"\t"$9}'
+done
+```
 
 ## Merge converted plink files
 See the [plink documentation](https://www.cog-genomics.org/plink2/data#merge) for more information.
