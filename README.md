@@ -165,9 +165,9 @@ zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{pr
 zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_native.map
 
 #marker map files for Illumina chips with UMD3.1 dbSNP positions
-zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv1_annotationfile_umd3_1.map
-zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv2_annotationfile_umd3_1.map
-zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_umd3_1.map
+zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina50Kv1_annotationfile_umd3_1.map
+zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina50Kv2_annotationfile_umd3_1.map
+zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina777K_annotationfile_umd3_1.map
 
 #marker map file for Affymetrix 50K chip
 cut -f 1-4 affy50k_annotation_final_list_20160715.txt > affymetrix50K.map
