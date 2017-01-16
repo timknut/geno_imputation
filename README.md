@@ -24,32 +24,25 @@ Table of Contents
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Geno imputation
-Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
-
-## Purpose of this reposiory
-**Our goal** is to write scripts that both document and does the convertion from Chip raw-data and imputation. We should be able to run the scripts regardless of if we are sitting in Ås or Edinburg.
-
-## Rules
-1. Add a user specific `prefix` to all scripts that refer to programs or data outside the `geno_imputation` folder. 
-
-**Example:**
-```sh
-prefix=/mnt/users/tikn/for_folk/geno #  Tim  
-#prefix=/some/Roslin/path #  Paolo 
-
-infile=$1
-outfile=$(basename $1 .txt).ped 
-ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
-
-"$ioSNP" -i "$infile" -n Genomelist -o "$outfile" -u Plink
-```
+Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. Our goal is to write scripts that both document and does the convertion from Chip raw-data and imputation. As long as the software dependencies are met and the setup code block is edited we should be able to run the scripts on the HPC clusters in Ås / Edinburg / Oslo and on Geno's production server.
 
 # Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
 
+## Setup and software dependencies
+First set up some user-specific variables pointing to a clone of this repository, the [snptranslate](https://github.com/timknut/snptranslate) repository, raw genotype data from the ftp server ftpgeno.geno.no. The code below dependends on the Bash version 4, Python 2 with numpy (for snptranslate) and R with a few packages (data.table,knitr).
+
+```bash
+#user-specific variable
+prefix=/mnt/users/gjuvslan/geno/geno_imputation          #git clone of https://github.com/argju/geno_imputation
+ftpgeno=/mnt/users/gjuvslan/geno/geno_imputation/ftpgeno #raw genotype data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files
+snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/  #git clone of https://github.com/timknut/snptranslate.git
+export PATH=$PATH:$snptranslatepath
+```
+
 ## Common folder tree
 Look like this in Tims local repo, as of july 14. 2016.
-```sh
+```
 tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
 .
 ├── affymetrix_54k
@@ -70,13 +63,11 @@ tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
     └── edited_FinalReport_54kV2_collection_ed1
 
 16 directories
-
 ```
 
 ```bash
-# Code to go from the raw data at ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
+# Code to go from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
 # ftp download raw data to $ftpgeno and gunzip files
-ftpgeno=/mnt/users/gjuvslan/geno/geno_imputation/ftpgeno
 cd genotype_rawdata
 mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
 ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
@@ -185,8 +176,6 @@ Convert the Affymetrix and Illumina genotype report files to Plink standard [tex
 Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py to convert from Affymetrix format to Geno format. Then use ioSNP.py to convert from Geno to Plink text input format.
 
 ```bash
-snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/
-export PATH=$PATH:$snptranslatepath
 
 #Convert Affymetrix 50K files
 for affycall in `gawk '{print $1}' genotype_rawdata/affymetrix_headers | sort | uniq`
