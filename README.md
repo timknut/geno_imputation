@@ -38,6 +38,14 @@ prefix=/mnt/users/gjuvslan/geno/geno_imputation          #git clone of https://g
 ftpgeno=/mnt/users/gjuvslan/geno/geno_imputation/ftpgeno #raw genotype data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files
 snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/  #git clone of https://github.com/timknut/snptranslate.git
 export PATH=$PATH:$snptranslatepath
+
+#check required software
+echo -n "Python 2 with Numpy required:"
+python -c "import sys; assert sys.version_info[0]==2; import numpy as np" || (echo "Not found."; exit 1) && which python
+echo -n "Plink 1.9 required:"
+plink --version | grep v1.9 || (echo "Not found."; exit 1) && which plink
+echo -n "R with some packages required:"
+R -e 'library(data.table); library(knitr); library(ggplot2); library(DT)' || (echo "Not found."; exit 1) && which R
 ```
 
 ## Common folder tree
