@@ -40,12 +40,14 @@ snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/  #git clone of https://g
 export PATH=$PATH:$snptranslatepath
 
 #check required software
-echo -n "Python 2 with Numpy required:"
-python -c "import sys; assert sys.version_info[0]==2; import numpy as np" || (echo "Not found."; exit 1) && which python
-echo -n "Plink 1.9 required:"
-plink --version | grep v1.9 || (echo "Not found."; exit 1) && which plink
-echo -n "R with some packages required:"
-R -e 'library(data.table); library(knitr); library(ggplot2); library(DT)' || (echo "Not found."; exit 1) && which R
+set -e
+echo "#### Checking dependency Python 2 with Numpy." 
+python -c "import sys; assert sys.version_info[0]==2; import numpy as np"
+echo "#### Checking dependency Plink 1.9."
+plink --version | grep v1.9
+echo "#### Checking dependency R with packages data.table, knitr, ggplot2, DT."
+R -e 'library(data.table); library(knitr); library(ggplot2); library(DT)'
+set +e
 ```
 
 ## Common folder tree
