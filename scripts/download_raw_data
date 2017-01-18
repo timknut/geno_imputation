@@ -10,6 +10,10 @@ mkdir -p $ftpgeno
 cd $ftpgeno
 
 echo "Downloading raw genotype data in $ftpgeno"
-wget -nv -nH -r ftp://avlgeno@ftpgeno.geno.no/*Raw_Data_Files --ask-password      	#get genotypes and pedigree files
-wget -nv -nH -r ftp://avlgeno@ftpgeno.geno.no/Raw_Data_Files/affy_raw --ask-password	#Affymetrix data
-ln -s Raw_Data_Files/affy_raw/* Raw_Data_Files/
+time wget -nv -nH -r ftp://avlgeno@ftpgeno.geno.no/*Raw_Data_Files --ask-password      	#get genotypes and pedigree files
+cd Raw_Data_Files
+ln -s affy_raw/* .
+
+echo -n "Unzipping raw genotype data in $ftpgeno"
+time gunzip -v *.gz
+
