@@ -1,62 +1,68 @@
 Table of Contents
 =================
-
-  * [Table of Contents](#table-of-contents)
-  * [Geno imputation](#geno-imputation)
-    * [Purpose of this reposiory](#purpose-of-this-reposiory)
-    * [Rules](#rules)
-  * [NB! Validate that Tim's <a href="https://en.wikipedia.org/wiki/Tacit_knowledge">tacit knowledge</a> is accounted for!](#nb-validate-that-tims-tacit-knowledge-is-accounted-for)
-  * [Pipeline](#pipeline)
-    * [Split collection files.](#split-collection-files)
-    * [Common folder tree](#common-folder-tree)
-    * [Automatically summarize raw data in folder tree.](#automatically-summarize-raw-data-in-folder-tree)
-    * [Prepare marker map files.](#prepare-marker-map-files)
-      * [Convert annotation file to map file accepted by ioSNP.py](#convert-annotation-file-to-map-file-accepted-by-iosnppy)
-    * [Convert raw-data.](#convert-raw-data)
-      * [Affymetrix 55K](#affymetrix-55k)
-      * [Illumina](#illumina)
-    * [Merge converted plink files](#merge-converted-plink-files)
-    * [QC of converted raw data <strong>before</strong> imputation.](#qc-of-converted-raw-data-before-imputation)
-      * [Suggestions for filtering:](#suggestions-for-filtering)
-    * [Convert to alphaimpute format](#convert-to-alphaimpute-format)
-    * [Documentation and scripts for imputation.](#documentation-and-scripts-for-imputation)
+   * [Geno imputation](#geno-imputation)
+   * [Pipeline](#pipeline)
+      * [Setup and software dependencies](#setup-and-software-dependencies)
+      * [Common folder tree](#common-folder-tree)
+      * [Split collection files.](#split-collection-files)
+      * [Automatically summarize raw data in folder tree.](#automatically-summarize-raw-data-in-folder-tree)
+      * [Prepare marker map files.](#prepare-marker-map-files)
+         * [Convert annotation file to map file accepted by ioSNP.py](#convert-annotation-file-to-map-file-accepted-by-iosnppy)
+      * [Convert raw-data to Plink text input files](#convert-raw-data-to-plink-text-input-files)
+         * [Affymetrix 55K](#affymetrix-55k)
+         * [Illumina](#illumina)
+      * [Convert Plink text input files to binary files](#convert-plink-text-input-files-to-binary-files)
+      * [Merge converted plink files](#merge-converted-plink-files)
+      * [QC of converted raw data <strong>before</strong> imputation.](#qc-of-converted-raw-data-before-imputation)
+         * [Suggestions for filtering:](#suggestions-for-filtering)
+      * [Checklist: Validate that Tim's <a href="https://en.wikipedia.org/wiki/Tacit_knowledge">tacit knowledge</a> is accounted for!](#checklist-validate-that-tims-tacit-knowledge-is-accounted-for)
+      * [Convert to alphaimpute format](#convert-to-alphaimpute-format)
+      * [Documentation and scripts for imputation.](#documentation-and-scripts-for-imputation)
 
 Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc)
 
 # Geno imputation
-Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. 
-
-## Purpose of this reposiory
-**Our goal** is to write scripts that both document and does the convertion from Chip raw-data and imputation. We should be able to run the scripts regardless of if we are sitting in Ås or Edinburg.
-
-## Rules
-1. Add a user specific `prefix` to all scripts that refer to programs or data outside the `geno_imputation` folder. 
-
-**Example:**
-```sh
-prefix=/mnt/users/tikn/for_folk/geno #  Tim  
-#prefix=/some/Roslin/path #  Paolo 
-
-infile=$1
-outfile=$(basename $1 .txt).ped 
-ioSNP=${prefix}/geno_imputation/scripts/snptranslate/ioSNP.py
-
-"$ioSNP" -i "$infile" -n Genomelist -o "$outfile" -u Plink
-```
-# NB! Validate that Tim's [tacit knowledge](https://en.wikipedia.org/wiki/Tacit_knowledge) is accounted for!
-- [ ] **Flipping**: Illumina 50K and 777k should be flipped to the forward strand. She lists in chip-folders on the Dropbox Geno_sharing. Flipping is done by Paolo with `plink --flip`
-- [ ] **Remap 25k markers on affy 50k** Convertion list `final_corrected_Affy25K_on_50K.txt` in Dropbox.
-- [ ] **Correct subsetting of Affy 50k markers.** See list in Affy50k Dropbox folder. `final_list_to_Paolo_may_2016_affy50k_markers2_keep`
-- [ ] **Markers wrongly positioned because of assembly problems** See `assembly_fail_markers_to_exclude_*` in affy50k and illumina 777k folders in Dropbox.
-- [ ] **Have Paolo recieved and included the latest Affymetrix data?**
-- [ ] **Keep most recent or higher density sample** when same sample is genotyped on same or several platforms. 
+Welcome to the Geno Imputation github repository. We want this to b a common code base for developing the genotype reference for Geno imputed with AlphaImpute. Our goal is to write scripts that both document and does the convertion from Chip raw-data and imputation. As long as the software dependencies are met and the setup code block is edited we should be able to run the scripts on the HPC clusters in Ås / Edinburg / Oslo and on Geno's production server.
 
 # Pipeline
 Link to other .md docs,, or have everything here with a big TOC at the top. 
 
+## Setup and software dependencies
+First set up some user-specific variables pointing to a clone of this repository, the [snptranslate](https://github.com/timknut/snptranslate) repository, raw genotype data from the ftp server ftpgeno.geno.no. The code below dependends on the Bash version 4, Python 2 with numpy (for snptranslate) and R with a few packages (data.table,knitr).
+
+```bash
+#user-specific variable
+prefix=/mnt/users/gjuvslan/geno/geno_imputation          #git clone of https://github.com/argju/geno_imputation
+ftpgeno=/mnt/users/gjuvslan/geno/geno_imputation/ftpgeno #raw genotype data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files
+snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/  #git clone of https://github.com/timknut/snptranslate.git
+export PATH=$PATH:$snptranslatepath
+
+#check required software
+set -e
+echo "#### Checking dependency Python 2 with Numpy." 
+python -c "import sys; assert sys.version_info[0]==2; import numpy as np"
+echo "#### Checking dependency Plink 1.9."
+plink --version | grep v1.9
+echo "#### Checking dependency R with packages data.table, knitr, ggplot2, DT."
+R -e 'library(data.table); library(knitr); library(ggplot2); library(DT)'
+set +e
+
+#check raw genotype data
+Nrawfiles=$(ls -1 $ftpgeno/Raw_Data_Files/FinalReport*.txt $ftpgeno/Raw_Data_Files/Batch*.txt | wc -l)
+if [ "$Nrawfiles" == "16" ]
+then
+    echo "Found all unzipped raw genotype files in $ftpgeno"
+else
+    echo "Did not find all raw genotype files in $ftpgeno."
+    ls -1 $ftpgeno/Raw_Data_Files/FinalReport*.txt $ftpgeno/Raw_Data_Files/Batch*.txt
+    echo "Run scripts/download_raw_data to get all the raw data."
+    exit 1
+fi
+```
+
 ## Common folder tree
 Look like this in Tims local repo, as of july 14. 2016.
-```sh
+```
 tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
 .
 ├── affymetrix_54k
@@ -77,20 +83,18 @@ tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
     └── edited_FinalReport_54kV2_collection_ed1
 
 16 directories
-
 ```
 
 ```bash
-# Code to go from the raw data at ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
+# Code to go from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
 # ftp download raw data to $ftpgeno and gunzip files
-ftpgeno=/mnt/users/gjuvslan/geno/geno_imputation/ftpgeno
 cd genotype_rawdata
 mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
 ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
 ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_54k*
-ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
+ln -s -t illumina54k_v1/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt 
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
 ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
 ln -s -t illumina777k/ $ftpgeno/Raw_Data_Files/Nordic_HDexchange_201110.txt
@@ -116,6 +120,8 @@ cd ../../..
 The bash code below extracts key information from the raw data files, and this is collected into a full report in [reports/genotypereport.Rmd](reports/genotypereport.Rmd) .
 
 ```bash
+cd genotype_rawdata
+
 #grep Illumina FinalReports for headers, normalize whitespace and create table
 grep -A 8 -m 1 "\[Header" illumina*/*/Final* illumina*/Final* | grep -v -e "\[" -e "--" > tmp
 sed -i -e s/Processing\\t/Processing" "/g -e s/Num\\t/Num" "/g -e s/Total\\t/Total" "/g tmp
@@ -125,16 +131,23 @@ cat tmp | sed -e s/-/\\t/g -e s/\\t\\t/\\t/g > illumina_headers
 
 ## grep Illumina FinalReports for ids, normalize whitespace and create table of filenames and ids
 # 1. files in GenomeMatrix format
-matrixfiles=illumina54k_v2/collections/*" "illumina777k/FinalReport_777k_apr2015.txt" "illumina777k/FinalReport_777k_jun2015.txt" "illumina54k_v2/FinalReport_54kV2_nov2011_ed1.txt" "illumina777k/FinalReport_777k.txt
+matrixfiles=illumina54k_v2/collections/Final*" "illumina777k/FinalReport_777k_apr2015.txt" "illumina777k/FinalReport_777k_jun2015.txt" "illumina54k_v2/FinalReport_54kV2_nov2011_ed1.txt" "illumina777k/FinalReport_777k.txt
 grep -A 1 -m 1 "\[Data" $matrixfiles | grep -v -e "\[Data" -e "--" > tmp 
 sed -i -e s/FinalReport_777k.txt-2402/FinalReport_777k.txt-\\t2402/g tmp #FinalReport_777k.txt lacks tab before first ID
 cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print $1,$i}' > illumina_ids
+rm illumina_formats
+for file in $matrixfiles; do echo -e $file"\t"Genomematrix >> illumina_formats ; done
 
 # 2. files in GenomeList format (~5 min)
 listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt
 time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
+for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
-#Affymetrix reports
+# 3. files in Genomelist format, but without headers
+listfiles_nh=illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt
+for file in $listfiles_nh; do echo -e $file"\t"Genomelist >> illumina_formats ; done
+
+## Affymetrix reports
 grep -E "time-str|chip-type|cel-count" affymetrix54k/Batch* > tmp
 sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
 sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
@@ -146,6 +159,8 @@ done
 
 grep probeset affymetrix54k/Batch* | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
 sed -e s/:probeset_id//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
+
+cd ..
 ```
 
 ## Prepare marker map files.  
@@ -156,39 +171,90 @@ Annotation files for 50Kv1&v2 and 777K Illumina chips was [downloaded from SNPch
 
 ```bash
 cd genotype_rawdata/marker_mapfiles/
-#marker map files with Native platform positions
+#marker map files for Illumina chips with Native platform positions
 zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv1_annotationfile_native.map
 zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv2_annotationfile_native.map
 zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_native.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_native.map
 
-#marker map files with UMD3.1 dbSNP positions
-zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv1_annotationfile_umd3_1.map
-zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina50Kv2_annotationfile_umd3_1.map
-zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' > illumina777K_annotationfile_umd3_1.map
+#marker map files for Illumina chips with UMD3.1 dbSNP positions
+zgrep Bov_Illu50Kv1 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina50Kv1_annotationfile_umd3_1.map
+zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina50Kv2_annotationfile_umd3_1.map
+zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina777K_annotationfile_umd3_1.map
+
+#marker map file for Affymetrix 50K chip
+cut -f 1-4 affy50k_annotation_final_list_20160715.txt > affymetrix50K.map
 
 cd ../..
 ```
 
 
-## Convert raw-data.
-1. Describe convertion workflow and location of scripts.
+## Convert raw-data to Plink text input files
+
+Convert the Affymetrix and Illumina genotype report files to Plink standard [text input files (.ped)](https://www.cog-genomics.org/plink2/formats#ped) files paired up with matching [.map](https://www.cog-genomics.org/plink2/formats#map) files.
 
 ### Affymetrix 55K
-Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py
+Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master/seqreport_edit.py to convert from Affymetrix format to Geno format. Then use ioSNP.py to convert from Geno to Plink text input format.
 
-usage: `seqreport.py -m genotype_rawdata/marker_mapfiles/affy50k_annotation_final_list_20160715.txt -r [dummy reportfilename] -o outfile_semi.ped [Affy .call file]`
+```bash
 
-2. Define file structure for converted data.
-
+#Convert Affymetrix 50K files
+markermap_affy=genotype_rawdata/marker_mapfiles/affy50k_annotation_merged_20170119.txt
+mkdir -p genotype_data/plink_txt genotype_data/plink_bin genotype_data/reports
+for affycall in `gawk '{print $1}' genotype_rawdata/affymetrix_headers | sort | uniq`
+do
+    echo -e "Converting Affymetrix report file: "$affycall"\tMarkermap: "$markermap_affy
+    time seqreport_edit.py -m $markermap_affy -o genotype_data/plink_txt/$(basename $affycall) -r genotype_data/reports/$(basename $affycall).seqreport genotype_rawdata/$affycall
+    ioSNP.py -i genotype_data/plink_txt/$(basename $affycall) -n Geno -o genotype_data/plink_txt/$(basename $affycall).ped -u Plink --output2 genotype_data/plink_txt/$(basename $affycall).map -m genotype_rawdata/marker_mapfiles/affymetrix50K.map
+done
+```
 ### Illumina
-Use `scripts/Genome_2_plink.sh` : 
 
-Script takes an illumina Finalreport in standard (GenomeList) or Matrix (Genomematrix) format and outputs
-a plink *.ped and *.map file automatically named plink_format/[infile].ped/map
-See the [Genomestudio documentation](http://support.illumina.com/content/dam/illumina-support/documents/documentation/software_documentation/genomestudio/genomestudio-2-0/genomestudio-genotyping-module-v2-user-guide-11319113-01.pdf) page 61. for details. 
-Convertion is done by calling snptranslate present in this repo.
+Use ioSNP.py to convert all Finalreport files.
 
-Usage: `sh scripts/Genome_2_plink.sh [FinalReport file] [input-format](Genomelist or Genomematrix) [markerfile]`
+```bash
+snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/
+export PATH=$PATH:$snptranslatepath
+
+## Assign marker position maps for each chip
+declare -A markermap=([illumina54k_v1]=illumina50Kv1_annotationfile_umd3_1.map [illumina54k_v2]=illumina50Kv2_annotationfile_umd3_1.map [illumina777k]=illumina777K_annotationfile_umd3_1.map)
+
+## Loop over chips and convert all genotype report files to .ped format 
+for chip in "${!markermap[@]}"
+do     
+    for report in `grep $chip genotype_rawdata/illumina_formats | gawk '{print $1}'`
+    do
+        pedfile=genotype_data/plink_txt/$(basename $report).ped
+        if [ -e $pedfile ]
+        then
+            echo "Skipping conversion of: "$report", plink input file exists: "$pedfile
+        else
+            echo -e "Converting Illumina report file: "$report"\tMarkermap: "${markermap[$chip]}  
+            informat=$(grep $report[[:space:]] genotype_rawdata/illumina_formats | gawk '{print $2}')
+            ioSNP.py -i genotype_rawdata/$report -n $informat -o $pedfile".tmp" -u Plink --output2 genotype_data/plink_txt/$(basename $report).map -m genotype_rawdata/marker_mapfiles/${markermap[$chip]} && mv $pedfile".tmp" $pedfile
+        fi
+    done
+done
+```
+
+## Convert Plink text input files to binary files
+
+```bash
+# convert all .ped and .map files to Plink binary files
+for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
+do
+    for file in `grep -h $chip genotype_rawdata/illumina_formats genotype_rawdata/affymetrix_headers | gawk '{print $1}' | sort | uniq`
+    do  
+        time plink --cow --file genotype_data/plink_txt/$(basename $file) --out genotype_data/plink_bin/$(basename $file)  
+    done 
+done
+
+#parse plink logs to extract table with number of SNPs and individuals
+for file in genotype_data/plink_bin/*.log
+do  
+    echo -n $(echo $file | sed s/.log//)
+    grep single-pass $file | gawk -F "[( ,)]" '{print "\t"$6"\t"$9}'
+done
+```
 
 ## Merge converted plink files
 See the [plink documentation](https://www.cog-genomics.org/plink2/data#merge) for more information.
@@ -206,6 +272,15 @@ plink --cow --bfile inprefix --merge-list file_list.txt --out all_merged
 * Mendelian error filtering per SNP and animal. (Although AlphaImpute do a good job at this.)
 * Heterozygosity per animal
 Example plink command: `plink --bfile infile --cow --hwe 1e-7 --maf 0.01 --geno 0.90 --mind 0.90`
+
+## Checklist: Validate that Tim's [tacit knowledge](https://en.wikipedia.org/wiki/Tacit_knowledge) is accounted for!
+- [ ] **Flipping**: Illumina 50K and 777k should be flipped to the forward strand. She lists in chip-folders on the Dropbox Geno_sharing. Flipping is done by Paolo with `plink --flip`
+- [ ] **Remap 25k markers on affy 50k** Convertion list `final_corrected_Affy25K_on_50K.txt` in Dropbox.
+- [ ] **Correct subsetting of Affy 50k markers.** See list in Affy50k Dropbox folder. `final_list_to_Paolo_may_2016_affy50k_markers2_keep`
+- [ ] **Markers wrongly positioned because of assembly problems** See `assembly_fail_markers_to_exclude_*` in affy50k and illumina 777k folders in Dropbox.
+- [ ] **Have Paolo recieved and included the latest Affymetrix data?**
+- [ ] **Keep most recent or higher density sample** when same sample is genotyped on same or several platforms. 
+
 
 ## Convert to alphaimpute format
 
