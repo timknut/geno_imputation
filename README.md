@@ -46,6 +46,18 @@ plink --version | grep v1.9
 echo "#### Checking dependency R with packages data.table, knitr, ggplot2, DT."
 R -e 'library(data.table); library(knitr); library(ggplot2); library(DT)'
 set +e
+
+#check raw genotype data
+Nrawfiles=$(ls -1 $ftpgeno/Raw_Data_Files/FinalReport*.txt $ftpgeno/Raw_Data_Files/Batch*.txt | wc -l)
+if [ "$Nrawfiles" == "16" ]
+then
+    echo "Found all unzipped raw genotype files in $ftpgeno"
+else
+    echo "Did not find all raw genotype files in $ftpgeno."
+    ls -1 $ftpgeno/Raw_Data_Files/FinalReport*.txt $ftpgeno/Raw_Data_Files/Batch*.txt
+    echo "Run scripts/download_raw_data to get all the raw data."
+    exit 1
+fi
 ```
 
 ## Common folder tree
