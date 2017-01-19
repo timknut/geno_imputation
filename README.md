@@ -198,7 +198,7 @@ Use snptranslate-script from https://github.com/timknut/snptranslate/blob/master
 ```bash
 
 #Convert Affymetrix 50K files
-markermap_affy=genotype_rawdata/marker_mapfiles/affy50k_annotation_final_list_20160715.txt
+markermap_affy=genotype_rawdata/marker_mapfiles/affy50k_annotation_merged_20170119.txt
 mkdir -p genotype_data/plink_txt genotype_data/plink_bin genotype_data/reports
 for affycall in `gawk '{print $1}' genotype_rawdata/affymetrix_headers | sort | uniq`
 do
