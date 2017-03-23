@@ -145,6 +145,7 @@ for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; don
 
 # 3. files in Genomelist format, but without headers
 listfiles_nh=illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt
+time for file in $listfiles_nh; do echo $file; time -p cat $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
 for file in $listfiles_nh; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
 ## Affymetrix reports
