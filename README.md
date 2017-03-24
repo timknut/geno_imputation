@@ -134,19 +134,14 @@ cat tmp | sed -e s/-/\\t/g -e s/\\t\\t/\\t/g > illumina_headers
 matrixfiles=illumina54k_v2/collections/Final*" "illumina777k/FinalReport_777k_apr2015.txt" "illumina777k/FinalReport_777k_jun2015.txt" "illumina54k_v2/FinalReport_54kV2_nov2011_ed1.txt" "illumina777k/FinalReport_777k.txt
 grep -A 1 -m 1 "\[Data" $matrixfiles | grep -v -e "\[Data" -e "--" > tmp 
 sed -i -e s/FinalReport_777k.txt-2402/FinalReport_777k.txt-\\t2402/g tmp #FinalReport_777k.txt lacks tab before first ID
-cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print $1,$i}' > illumina_ids
+cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print $1"\t"$i}' > illumina_ids
 rm illumina_formats
 for file in $matrixfiles; do echo -e $file"\t"Genomematrix >> illumina_formats ; done
 
-# 2. files in GenomeList format (~5 min)
-listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt
-time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
+# 2. files in GenomeList format (~10 min)
+listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt" "illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt" "illumina25k/FinalReport_25k.txt
+time for file in $listfiles; do echo $file; time ./id.R $file >> illumina_ids ; done
 for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
-
-# 3. files in Genomelist format, but without headers
-listfiles_nh=illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt
-time for file in $listfiles_nh; do echo $file; time -p cat $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
-for file in $listfiles_nh; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
 ## Affymetrix reports
 grep -E "time-str|chip-type|cel-count" affymetrix54k/Batch* > tmp
