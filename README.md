@@ -140,7 +140,8 @@ for file in $matrixfiles; do echo -e $file"\t"Genomematrix >> illumina_formats ;
 
 # 2. files in GenomeList format (~10 min)
 listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt" "illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt" "illumina25k/FinalReport_25k.txt
-time for file in $listfiles; do echo $file; time ./id.R $file >> illumina_ids ; done
+time for file in $listfiles; do grep -q $file illumina_ids_list && echo 'Skipping (already in illumina_ids_list)' $file || ./id.R $file >> illumina_ids_list;done
+cat illumina_ids_list >> illumina_ids
 for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
 ## Affymetrix reports
