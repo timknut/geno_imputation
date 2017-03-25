@@ -98,7 +98,7 @@ ln -s -t illumina54k_v1/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
 ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
 ln -s -t illumina777k/ $ftpgeno/Raw_Data_Files/Nordic_HDexchange_201110.txt
-ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Batch*.calls.txt 
+ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/*.calls.txt 
 cd ..
 ```
 
@@ -145,16 +145,16 @@ cat illumina_ids_list >> illumina_ids
 for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
 ## Affymetrix reports
-grep -E "time-str|chip-type|cel-count" affymetrix54k/Batch* > tmp
+grep -E "time-str|chip-type|cel-count" affymetrix54k/*.calls.txt > tmp
 sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
 sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
-for file in $(ls affymetrix54k/Batch*)
+for file in $(ls affymetrix54k/*.calls.txt)
 do 
   echo "Counting SNPs in $file"
   echo -n -e "$file\tNum SNPs\t$(grep AX-[[:digit:]]* $file | cut -f 1 | wc -l)\n" >> affymetrix_headers
 done
 
-grep probeset affymetrix54k/Batch* | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
+grep probeset affymetrix54k/*.calls.txt | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
 sed -e s/:probeset_id//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
 
 cd ..
@@ -199,9 +199,15 @@ markermap_affy=genotype_rawdata/marker_mapfiles/affy50k_annotation_merged_201701
 mkdir -p genotype_data/plink_txt genotype_data/plink_bin genotype_data/reports
 for affycall in `gawk '{print $1}' genotype_rawdata/affymetrix_headers | sort | uniq`
 do
-    echo -e "Converting Affymetrix report file: "$affycall"\tMarkermap: "$markermap_affy
-    time seqreport_edit.py -m $markermap_affy -o genotype_data/plink_txt/$(basename $affycall) -r genotype_data/reports/$(basename $affycall).seqreport genotype_rawdata/$affycall
-    ioSNP.py -i genotype_data/plink_txt/$(basename $affycall) -n Geno -o genotype_data/plink_txt/$(basename $affycall).ped -u Plink --output2 genotype_data/plink_txt/$(basename $affycall).map -m genotype_rawdata/marker_mapfiles/affymetrix50K.map
+    pedfile=genotype_data/plink_txt/$(basename $affycall).ped
+    if [ -e $pedfile ]
+    then
+       echo "Skipping conversion of: "$affycall", plink input file exists: "$pedfile
+    else
+        echo -e "Converting Affymetrix report file: "$affycall"\tMarkermap: "$markermap_affy
+        time seqreport_edit.py -m $markermap_affy -o genotype_data/plink_txt/$(basename $affycall) -r genotype_data/reports/$(basename $affycall).seqreport genotype_rawdata/$affycall
+        ioSNP.py -i genotype_data/plink_txt/$(basename $affycall) -n Geno -o genotype_data/plink_txt/$(basename $affycall).ped -u Plink --output2 genotype_data/plink_txt/$(basename $affycall).map -m genotype_rawdata/marker_mapfiles/affymetrix50K.map
+    fi
 done
 ```
 ### Illumina
