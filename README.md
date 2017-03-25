@@ -48,8 +48,8 @@ R -e 'library(data.table); library(knitr); library(ggplot2); library(DT)'
 set +e
 
 #check raw genotype data
-Nrawfiles=$(ls -1 $ftpgeno/Raw_Data_Files/FinalReport*.txt $ftpgeno/Raw_Data_Files/Batch*.txt | wc -l)
-if [ "$Nrawfiles" == "16" ]
+Nrawfiles=$(ls -1 $ftpgeno/Raw_Data_Files/FinalReport* $ftpgeno/Raw_Data_Files/*.calls.txt | wc -l)
+if [ "$Nrawfiles" -ge "90" ]
 then
     echo "Found all unzipped raw genotype files in $ftpgeno"
 else
