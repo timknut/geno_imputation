@@ -23,14 +23,14 @@ library(DT)
 
 ```{r read_illumina_headers, echo=F}
 #read in illumina summary files
-chiptab <- dcast(fread('genotype_rawdata/illumina_headers',header=F),V1~V2,value.var='V3')
+chiptab <- dcast(fread('../genotype_rawdata/illumina_headers',header=F),V1~V2,value.var='V3')
 setnames(chiptab,c('Path','BSGTver','Chip','GSGTver','NumSNPs','NumInd','ProcDate','TotSNPs','TotInd'))
 chiptab <- chiptab[,`:=`(NumSNPs=as.numeric(NumSNPs),TotSNPs=as.numeric(TotSNPs),NumInd=as.numeric(NumInd),TotInd=as.numeric(TotInd))]
 chiptab <- chiptab[,Date:=as.Date(strsplit(ProcDate,' ')[[1]][1],format='%m/%d/%Y'),by=rownames(chiptab)]
 chiptab <- chiptab[,Folder:=strsplit(Path,'/')[[1]][1],by=rownames(chiptab)]
-indtab <- fread('genotype_rawdata/illumina_ids',header=F)
+indtab <- fread('../genotype_rawdata/illumina_ids',header=F)
 setnames(indtab,c('Path','ID'))
-illuminatab_h <- merge(indtab,chiptab,by='Path',all=T)
+illuminatab_h <- merge(indtab,chiptab,by='Path',all=F)
 ```
 
 ```{r read_illumina_reports_noheader, echo=F}
@@ -42,12 +42,12 @@ illuminatab_nh <- data.table()
 for (i in 1:length(folders))
 {
   #print(reports[i])
-  filename <- paste('genotype_rawdata/',folders[i],'/',reports[i],'.RData',sep="")
+  filename <- paste('../genotype_rawdata/',folders[i],'/',reports[i],'.RData',sep="")
   if (file.exists(filename))
   {
     load(filename)
   } else {
-    chipdata<- fread(paste('genotype_rawdata',folders[i],reports[i],sep='/'),header=F,select=c(1,2))
+    chipdata<- fread(paste('../genotype_rawdata',folders[i],reports[i],sep='/'),header=F,select=c(1,2))
     snps <- unique(chipdata$V1)
     ids <- unique(chipdata$V2)
     save(snps,ids,file=filename)
@@ -72,13 +72,13 @@ datatable(illuminatab[,.N,by=c('Path','TotInd','NumInd')][NumInd!=N],caption='Fi
 ```{r read_affymetrix_reports, echo=F, message=F, warning=F}
 
 #read in summary files
-chiptab_affy <- dcast(fread('genotype_rawdata/affymetrix_headers',header=F),V1~V2,value.var='V3')
+chiptab_affy <- dcast(fread('../genotype_rawdata/affymetrix_headers',header=F),V1~V2,value.var='V3')
 setnames(chiptab_affy,c('Path','Chip','ProcDate','NumInd','NumSNPs'))
 chiptab_affy <- chiptab_affy[,Folder:=strsplit(Path,split="/")[[1]][1],by=Path]
 chiptab_affy <- chiptab_affy[,Date:=as.Date(ProcDate,format='%a %b %d %T %Y'),by='Path']
 chiptab_affy <- chiptab_affy[,Chip:=sub(Chip,'Axiom_AFFY_NRF,Axiom_AFFY_NRF.r1','Axiom_AFFY_NRF.r1'),by='Path']
 chiptab_affy <- chiptab_affy[,`:=`(NumInd=as.numeric(NumInd),NumSNPs=as.numeric(NumSNPs))]
-indtab_affy <- fread('genotype_rawdata/affymetrix_ids',header=F)
+indtab_affy <- fread('../genotype_rawdata/affymetrix_ids',header=F)
 setnames(indtab_affy,c('Path','ID'))
 affymetrixtab <- merge(indtab_affy,chiptab_affy,by='Path',all=T)
 
