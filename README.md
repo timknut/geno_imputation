@@ -210,7 +210,13 @@ for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
     for file in `grep -h $chip genotype_rawdata/illumina_formats genotype_rawdata/affymetrix_headers | gawk '{print $1}' | sort | uniq`
     do  
-        time plink --cow --file genotype_data/plink_txt/$(basename $file) --out genotype_data/plink_bin/$(basename $file)  
+        plinkbin=genotype_data/plink_bin/$(basename $file)
+        if [[ -e $plinkbin".bed" && -e $plinkbin".bim" && -e $plinkbin".fam" ]]
+        then
+	    echo "Skipping conversion of: "$(basename $file)", plink binaries exist: "$binfile".bim/.bed/.fam"
+        else
+            time plink --cow --file genotype_data/plink_txt/$(basename $file) --out genotype_data/plink_bin/$(basename $file)
+        fi
     done 
 done
 
