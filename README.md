@@ -179,7 +179,7 @@ zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{pr
 zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina777K_annotationfile_umd3_1.map
 
 #marker map file for Affymetrix 50K chip
-cut -f 1-4 affy50k_annotation_final_list_20160715.txt > affymetrix50K.map
+cut -f 1-4 affy50k_annotation_final_list_20160715.txt | grep -v NA > affymetrix50K.map
 
 cd ../..
 ```
