@@ -61,33 +61,9 @@ fi
 ```
 
 ## Common folder tree
-Look like this in Tims local repo, as of july 14. 2016.
-```
-tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
-.
-├── affymetrix_54k
-│   └── plink_format
-├── illumina25k
-│   └── plink_format
-├── illumina54k_v1
-│   └── plink_format
-├── illumina54k_v2
-│   ├── collection_Genomematrix_files
-│   │   └── plink_format
-│   └── plink_format
-├── illumina777k
-│   └── plink_format
-├── marker_mapfiles
-└── summarize_rawdata
-    ├── collection2
-    └── edited_FinalReport_54kV2_collection_ed1
-
-16 directories
-```
 
 ```bash
-# Code to go from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
-# ftp download raw data to $ftpgeno and gunzip files
+# Code to from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common folder tree
 cd genotype_rawdata
 mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
 ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
@@ -100,19 +76,6 @@ ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
 ln -s -t illumina777k/ $ftpgeno/Raw_Data_Files/Nordic_HDexchange_201110.txt
 ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/*.calls.txt 
 cd ..
-```
-
-## Split collection files.
-Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`. The script [split_collectionfiles.sh](scripts/split_collectionfiles.sh) shows how this was done in Tims version of the REPO.
-
-```bash
-# Split the collections, ~2 min
-cd genotype_rawdata/illumina54k_v2/collections/
-awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection_ed1.txt
-awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection2.txt
-mv FinalReport_54kV2_collection_ed1.txt Collection_FinalReport_54kV2_collection_ed1.txt
-mv FinalReport_54kV2_collection2.txt Collection_FinalReport_54kV2_collection2.txt
-cd ../../..
 ```
 
 ## Automatically summarize raw data in folder tree. 
