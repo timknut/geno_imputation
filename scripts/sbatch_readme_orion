@@ -5,7 +5,7 @@
 #SBATCH --mem=16G                # Default memory per CPU is 5Gb whether you included this option or not. If you would like to use more please adjust this.  Warning: Job will be killed if it exceed 5Gb memory!
 
 module load anaconda
-module load plink2
+module load plink2/1.90b3w
 module load R/3.3.2
 
 cd ..
