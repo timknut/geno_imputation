@@ -65,8 +65,8 @@ fi
 ```bash
 # Code to from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common folder tree
 cd genotype_rawdata
-mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
-ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
+mkdir -p affymetrix25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
+ln -s -t affymetrix25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
 ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_54k*
@@ -102,7 +102,7 @@ rm illumina_formats
 for file in $matrixfiles; do echo -e $file"\t"Genomematrix >> illumina_formats ; done
 
 # 2. files in GenomeList format (~10 min)
-listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt" "illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt" "illumina25k/FinalReport_25k.txt
+listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt" "illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt" "affymetrix25k/FinalReport_25k.txt
 time for file in $listfiles; do grep -q $file illumina_ids_list && echo 'Skipping (already in illumina_ids_list)' $file || ./id.R $file >> illumina_ids_list;done
 cat illumina_ids_list >> illumina_ids
 for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
@@ -186,7 +186,7 @@ declare -A markermap=([illumina54k_v1]=illumina50Kv1_annotationfile_umd3_1.map [
 
 ## Loop over chips and convert all genotype report files to .ped format 
 for chip in "${!markermap[@]}"
-do     
+do
     for report in `grep $chip genotype_rawdata/illumina_formats | gawk '{print $1}'`
     do
         pedfile=genotype_data/plink_txt/$(basename $report).ped
@@ -209,7 +209,7 @@ done
 for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
     for file in `grep -h $chip genotype_rawdata/illumina_formats genotype_rawdata/affymetrix_headers | gawk '{print $1}' | sort | uniq`
-    do  
+    do
         plinkbin=genotype_data/plink_bin/$(basename $file)
         if [[ -e $plinkbin".bed" && -e $plinkbin".bim" && -e $plinkbin".fam" ]]
         then
@@ -222,7 +222,7 @@ done
 
 #parse plink logs to extract table with number of SNPs and individuals
 for file in genotype_data/plink_bin/*.log
-do  
+do
     echo -n $(echo $file | sed s/.log//)
     grep single-pass $file | gawk -F "[( ,)]" '{print "\t"$6"\t"$9}'
 done
