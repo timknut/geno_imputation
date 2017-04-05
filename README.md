@@ -228,11 +228,19 @@ do
 done
 ```
 
-## Merge converted plink files
+## Merge converted plink files into one file per chip
 See the [plink documentation](https://www.cog-genomics.org/plink2/data#merge) for more information.
 Given a file that list file prefixes that are to be merged with a plink binary file-set, the following command would work.
-```sh
-plink --cow --bfile inprefix --merge-list file_list.txt --out all_merged
+```bash
+cd genotype_data
+mkdir -p plink_merged_chip
+for chip in affymetrix25k illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
+do
+    grep $chip ../genotype_rawdata/illumina_formats | cut -f 1 | sed s/$chip/plink_bin/g | sed s/collections//g > $chip.files
+    grep $chip ../genotype_rawdata/affymetrix_headers | cut -f 1 | sort | uniq | sed s/$chip/plink_bin/g >> $chip.files
+    tail -n +1 $chip.files > $chip.merge
+    plink --cow --bfile $(head -1 $chip.files) --merge-list $chip.merge --out plink_merged_chip/$chip
+done
 ```
 
 ## QC of converted raw data **before** imputation. 
