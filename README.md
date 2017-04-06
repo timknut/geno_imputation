@@ -48,8 +48,8 @@ R -e 'library(data.table); library(knitr); library(ggplot2); library(DT)'
 set +e
 
 #check raw genotype data
-Nrawfiles=$(ls -1 $ftpgeno/Raw_Data_Files/FinalReport*.txt $ftpgeno/Raw_Data_Files/Batch*.txt | wc -l)
-if [ "$Nrawfiles" == "16" ]
+Nrawfiles=$(ls -1 $ftpgeno/Raw_Data_Files/FinalReport* $ftpgeno/Raw_Data_Files/*.calls.txt | wc -l)
+if [ "$Nrawfiles" -ge "90" ]
 then
     echo "Found all unzipped raw genotype files in $ftpgeno"
 else
@@ -61,36 +61,12 @@ fi
 ```
 
 ## Common folder tree
-Look like this in Tims local repo, as of july 14. 2016.
-```
-tikn@login-0:~/for_folk/geno/geno_imputation/genotype_rawdata$ tree -d
-.
-├── affymetrix_54k
-│   └── plink_format
-├── illumina25k
-│   └── plink_format
-├── illumina54k_v1
-│   └── plink_format
-├── illumina54k_v2
-│   ├── collection_Genomematrix_files
-│   │   └── plink_format
-│   └── plink_format
-├── illumina777k
-│   └── plink_format
-├── marker_mapfiles
-└── summarize_rawdata
-    ├── collection2
-    └── edited_FinalReport_54kV2_collection_ed1
-
-16 directories
-```
 
 ```bash
-# Code to go from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common code tree
-# ftp download raw data to $ftpgeno and gunzip files
+# Code to from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common folder tree
 cd genotype_rawdata
-mkdir -p illumina25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
-ln -s -t illumina25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
+mkdir -p affymetrix25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
+ln -s -t affymetrix25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
 ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_54k*
@@ -98,21 +74,8 @@ ln -s -t illumina54k_v1/ $ftpgeno/Raw_Data_Files/Swedish_54k_ed1.txt
 mv illumina54k_v2/FinalReport_54kV2_collection* illumina54k_v2/collections
 ln -s -t illumina777k $ftpgeno/Raw_Data_Files/FinalReport_777k*
 ln -s -t illumina777k/ $ftpgeno/Raw_Data_Files/Nordic_HDexchange_201110.txt
-ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/Batch*.calls.txt 
+ln -s -t affymetrix54k/ $ftpgeno/Raw_Data_Files/*.calls.txt 
 cd ..
-```
-
-## Split collection files.
-Some of the files are collections of Illumina MATRIX-format files. See eg. `genotype_rawdata/FinalReport_54kV2_collection2.txt`. The script [split_collectionfiles.sh](scripts/split_collectionfiles.sh) shows how this was done in Tims version of the REPO.
-
-```bash
-# Split the collections, ~2 min
-cd genotype_rawdata/illumina54k_v2/collections/
-awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection_ed1.txt
-awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection2.txt
-mv FinalReport_54kV2_collection_ed1.txt Collection_FinalReport_54kV2_collection_ed1.txt
-mv FinalReport_54kV2_collection2.txt Collection_FinalReport_54kV2_collection2.txt
-cd ../../..
 ```
 
 ## Automatically summarize raw data in folder tree. 
@@ -134,30 +97,27 @@ cat tmp | sed -e s/-/\\t/g -e s/\\t\\t/\\t/g > illumina_headers
 matrixfiles=illumina54k_v2/collections/Final*" "illumina777k/FinalReport_777k_apr2015.txt" "illumina777k/FinalReport_777k_jun2015.txt" "illumina54k_v2/FinalReport_54kV2_nov2011_ed1.txt" "illumina777k/FinalReport_777k.txt
 grep -A 1 -m 1 "\[Data" $matrixfiles | grep -v -e "\[Data" -e "--" > tmp 
 sed -i -e s/FinalReport_777k.txt-2402/FinalReport_777k.txt-\\t2402/g tmp #FinalReport_777k.txt lacks tab before first ID
-cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print $1,$i}' > illumina_ids
+cat tmp | sed -e s/-//g -e s/[[:space:]]/\\t/g | awk '{for(i=2;i<=NF;i++) print $1"\t"$i}' > illumina_ids
 rm illumina_formats
 for file in $matrixfiles; do echo -e $file"\t"Genomematrix >> illumina_formats ; done
 
-# 2. files in GenomeList format (~5 min)
-listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt
-time for file in $listfiles; do echo $file; time -p tail -n +11 $file | awk '{print $2}' | uniq | awk -v f=$file '{print f,$1}' >> illumina_ids ; done
+# 2. files in GenomeList format (~10 min)
+listfiles=illumina54k_v1/Final*" "illumina54k_v2/FinalReport_54kV2_feb2011_ed1.txt" "illumina54k_v2/FinalReport_54kV2_genoskan.txt" "illumina54k_v2/FinalReport_54kV2_ed1.txt" "illumina777k/FinalReport_777k_jan2015.txt" "illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt" "affymetrix25k/FinalReport_25k.txt
+time for file in $listfiles; do grep -q $file illumina_ids_list && echo 'Skipping (already in illumina_ids_list)' $file || ./id.R $file >> illumina_ids_list;done
+cat illumina_ids_list >> illumina_ids
 for file in $listfiles; do echo -e $file"\t"Genomelist >> illumina_formats ; done
 
-# 3. files in Genomelist format, but without headers
-listfiles_nh=illumina54k_v1/Swedish_54k_ed1.txt" "illumina54k_v2/Nordic*.txt" "illumina777k/Nordic_HDexchange_201110.txt
-for file in $listfiles_nh; do echo -e $file"\t"Genomelist >> illumina_formats ; done
-
 ## Affymetrix reports
-grep -E "time-str|chip-type|cel-count" affymetrix54k/Batch* > tmp
+grep -E "time-str|chip-type|cel-count" affymetrix54k/*.calls.txt > tmp
 sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
 sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
-for file in $(ls affymetrix54k/Batch*)
+for file in $(ls affymetrix54k/*.calls.txt)
 do 
   echo "Counting SNPs in $file"
   echo -n -e "$file\tNum SNPs\t$(grep AX-[[:digit:]]* $file | cut -f 1 | wc -l)\n" >> affymetrix_headers
 done
 
-grep probeset affymetrix54k/Batch* | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
+grep probeset affymetrix54k/*.calls.txt | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
 sed -e s/:probeset_id//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
 
 cd ..
@@ -182,7 +142,7 @@ zgrep Bov_Illu50Kv2 snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{pr
 zgrep Bov_IlluHD snpchimp/illumina_50Kv1_50Kv2_777K_UMD3.1.tsv.gz | gawk '{print $5"\t"$7"\t"0"\t"$6}' | sed s/^99/0/ > illumina777K_annotationfile_umd3_1.map
 
 #marker map file for Affymetrix 50K chip
-cut -f 1-4 affy50k_annotation_final_list_20160715.txt > affymetrix50K.map
+cut -f 1-4 affy50k_annotation_final_list_20160715.txt | grep -v NA > affymetrix50K.map
 
 cd ../..
 ```
@@ -202,9 +162,15 @@ markermap_affy=genotype_rawdata/marker_mapfiles/affy50k_annotation_merged_201701
 mkdir -p genotype_data/plink_txt genotype_data/plink_bin genotype_data/reports
 for affycall in `gawk '{print $1}' genotype_rawdata/affymetrix_headers | sort | uniq`
 do
-    echo -e "Converting Affymetrix report file: "$affycall"\tMarkermap: "$markermap_affy
-    time seqreport_edit.py -m $markermap_affy -o genotype_data/plink_txt/$(basename $affycall) -r genotype_data/reports/$(basename $affycall).seqreport genotype_rawdata/$affycall
-    ioSNP.py -i genotype_data/plink_txt/$(basename $affycall) -n Geno -o genotype_data/plink_txt/$(basename $affycall).ped -u Plink --output2 genotype_data/plink_txt/$(basename $affycall).map -m genotype_rawdata/marker_mapfiles/affymetrix50K.map
+    pedfile=genotype_data/plink_txt/$(basename $affycall).ped
+    if [ -e $pedfile ]
+    then
+       echo "Skipping conversion of: "$affycall", plink input file exists: "$pedfile
+    else
+        echo -e "Converting Affymetrix report file: "$affycall"\tMarkermap: "$markermap_affy
+        time seqreport_edit.py -m $markermap_affy -o genotype_data/plink_txt/$(basename $affycall) -r genotype_data/reports/$(basename $affycall).seqreport genotype_rawdata/$affycall
+        ioSNP.py -i genotype_data/plink_txt/$(basename $affycall) -n Geno -o genotype_data/plink_txt/$(basename $affycall).ped -u Plink --output2 genotype_data/plink_txt/$(basename $affycall).map -m genotype_rawdata/marker_mapfiles/affymetrix50K.map
+    fi
 done
 ```
 ### Illumina
@@ -220,7 +186,7 @@ declare -A markermap=([illumina54k_v1]=illumina50Kv1_annotationfile_umd3_1.map [
 
 ## Loop over chips and convert all genotype report files to .ped format 
 for chip in "${!markermap[@]}"
-do     
+do
     for report in `grep $chip genotype_rawdata/illumina_formats | gawk '{print $1}'`
     do
         pedfile=genotype_data/plink_txt/$(basename $report).ped
@@ -243,24 +209,38 @@ done
 for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
     for file in `grep -h $chip genotype_rawdata/illumina_formats genotype_rawdata/affymetrix_headers | gawk '{print $1}' | sort | uniq`
-    do  
-        time plink --cow --file genotype_data/plink_txt/$(basename $file) --out genotype_data/plink_bin/$(basename $file)  
+    do
+        plinkbin=genotype_data/plink_bin/$(basename $file)
+        if [[ -e $plinkbin".bed" && -e $plinkbin".bim" && -e $plinkbin".fam" ]]
+        then
+	    echo "Skipping conversion of: "$(basename $file)", plink binaries exist: "$binfile".bim/.bed/.fam"
+        else
+            time plink --cow --file genotype_data/plink_txt/$(basename $file) --out genotype_data/plink_bin/$(basename $file)
+        fi
     done 
 done
 
 #parse plink logs to extract table with number of SNPs and individuals
 for file in genotype_data/plink_bin/*.log
-do  
+do
     echo -n $(echo $file | sed s/.log//)
     grep single-pass $file | gawk -F "[( ,)]" '{print "\t"$6"\t"$9}'
 done
 ```
 
-## Merge converted plink files
+## Merge converted plink files into one file per chip
 See the [plink documentation](https://www.cog-genomics.org/plink2/data#merge) for more information.
 Given a file that list file prefixes that are to be merged with a plink binary file-set, the following command would work.
-```sh
-plink --cow --bfile inprefix --merge-list file_list.txt --out all_merged
+```bash
+cd genotype_data
+mkdir -p plink_merged_chip
+for chip in affymetrix25k illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
+do
+    grep $chip ../genotype_rawdata/illumina_formats | cut -f 1 | sed s/$chip/plink_bin/g | sed s/collections//g > $chip.files
+    grep $chip ../genotype_rawdata/affymetrix_headers | cut -f 1 | sort | uniq | sed s/$chip/plink_bin/g >> $chip.files
+    tail -n +1 $chip.files > $chip.merge
+    plink --cow --bfile $(head -1 $chip.files) --merge-list $chip.merge --out plink_merged_chip/$chip
+done
 ```
 
 ## QC of converted raw data **before** imputation. 

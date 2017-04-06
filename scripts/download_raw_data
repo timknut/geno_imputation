@@ -17,3 +17,11 @@ ln -s affy_raw/* .
 echo -n "Unzipping raw genotype data in $ftpgeno"
 time gunzip -v *.gz
 
+# Split the collections, ~2 min
+pwd
+ls
+awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection_ed1.txt
+awk '/^\[Header\]/{x=FILENAME"."++i} {print >x;}' FinalReport_54kV2_collection2.txt
+mv FinalReport_54kV2_collection_ed1.txt Collection_FinalReport_54kV2_collection_ed1.txt
+mv FinalReport_54kV2_collection2.txt Collection_FinalReport_54kV2_collection2.txt
+cd ../../..
