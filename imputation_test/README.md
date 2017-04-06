@@ -4,7 +4,9 @@ This repo will also showcase the simple workflow one need to implement to impute
 
 ## Links
 [minimac3](http://genome.sph.umich.edu/wiki/Minimac3)
+
 [Beagle4.1](https://faculty.washington.edu/browning/beagle/beagle.html)
+
 [Shapeit](https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.html)
 
 ## 2do
