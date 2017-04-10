@@ -118,7 +118,7 @@ do
 done
 
 grep probeset affymetrix54k/*.calls.txt | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
-sed -e s/:probeset_id//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
+sed -e s/:probeset_id//g tmp > affymetrix_ids
 
 cd ..
 ```
