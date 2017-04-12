@@ -118,7 +118,7 @@ do
 done
 
 grep probeset affymetrix54k/*.calls.txt | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
-sed -e s/:probeset_id//g -e s/_[A-Z][0-9]*.CEL// tmp > affymetrix_ids
+sed -e s/:probeset_id//g tmp > affymetrix_ids
 
 cd ..
 ```
@@ -226,6 +226,34 @@ do
     echo -n $(echo $file | sed s/.log//)
     grep single-pass $file | gawk -F "[( ,)]" '{print "\t"$6"\t"$9}'
 done
+```
+
+## Update Ids, pedigree and sex in plink
+
+```bash
+cd genotype_data
+## per File id mapping (remove, update ids, update pedigree, update sex)
+idmap=$ftpgeno/Id_Raw_Data_Files/ped_genoid_all.txt
+mkdir -p plink_bin_updateid plink_bin_updateped updates
+for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
+do
+    for file in $(grep $chip $idmap | cut -f 2 | uniq)
+    do
+        grep "$file.*Remove" $idmap | gawk '{print "F0\t"$3}' | sort |uniq > updates/$file.remove 
+        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print "F0\t"$3"\t"F"\t"$4}' | sort | uniq > updates/$file.ids
+        plink --cow --bfile plink_bin/$file --remove updates/$file.remove --update-ids updates/$file.ids --make-bed --out plink_bin_updateid/$file
+        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\tF0\t"$5"\tF0\t"$6}' | sort | uniq > updates/$file.parents
+        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$8}' | sort | uniq > updates/$file.sex
+        plink --cow --bfile plink_bin_updateid/$file --update-parents updates/$file.parents --update-sex updates/$file.sex --make-bed --out plink_bin_updateped/$file
+    done
+done
+
+##check for errors and warnings on id updates
+grep -i Error plink_bin_update*/*.log
+grep -i Warning plink_bin_update*/*.log
+grep -i Note plink_bin_update*/*.log
+
+cd ..
 ```
 
 ## Merge converted plink files into one file per chip
