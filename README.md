@@ -242,7 +242,7 @@ do
         grep "$file.*Remove" $idmap | gawk '{print "F0\t"$3}' | sort |uniq > updates/$file.remove 
         grep "$file.*Impute" $idmap | gawk -v F="$file" '{print "F0\t"$3"\t"F"\t"$4}' | sort | uniq > updates/$file.ids
         plink --cow --bfile plink_bin/$file --remove updates/$file.remove --update-ids updates/$file.ids --make-bed --out plink_bin_updateid/$file
-        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\tF0\t"$5"\tF0\t"$6}' | sort | uniq > updates/$file.parents
+        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$5"\t"$6}' | sort | uniq > updates/$file.parents
         grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$8}' | sort | uniq > updates/$file.sex
         plink --cow --bfile plink_bin_updateid/$file --update-parents updates/$file.parents --update-sex updates/$file.sex --make-bed --out plink_bin_updateped/$file
     done
