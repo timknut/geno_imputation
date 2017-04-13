@@ -228,13 +228,16 @@ do
 done
 ```
 
-## Update Ids, pedigree and sex in plink
+## Update pedigree and generate reports in plink
+
+* Update IDs and pedigree to GenoId, using mapping file ped_genoid_all.txt (separate repo: [geno_imputation_idmapping](git@bitbucket.org:genogit/geno_imputation_idmapping.git))
+* Write reports on missingness, HW, MAF and heterozygosity
 
 ```bash
 cd genotype_data
 ## per File id mapping (remove, update ids, update pedigree, update sex)
 idmap=$ftpgeno/Id_Raw_Data_Files/ped_genoid_all.txt
-mkdir -p plink_bin_updateid plink_bin_updateped updates
+mkdir -p plink_bin_updateid plink_bin_updateped updates plink_bin_reports
 for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
     for file in $(grep $chip $idmap | cut -f 2 | uniq)
@@ -245,6 +248,7 @@ do
         grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$5"\t"$6}' | sort | uniq > updates/$file.parents
         grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$8}' | sort | uniq > updates/$file.sex
         plink --cow --bfile plink_bin_updateid/$file --update-parents updates/$file.parents --update-sex updates/$file.sex --make-bed --out plink_bin_updateped/$file
+	plink --cow --bfile plink_bin_updateped/$file --hardy --missing --het --freqx --nonfounders --out plink_bin_reports/$file
     done
 done
 
