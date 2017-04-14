@@ -1,6 +1,7 @@
 ### R script hetero_geno
 
 * Script necessary to obtain the file hetero_remove used in step 6 of the plink_workflow.Rmd
+* The file data.het comes from PLINK --het test
 
 ```{r}
 setwd(' the directory where the file is located')
