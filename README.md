@@ -114,8 +114,13 @@ sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
 sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
 for file in $(ls affymetrix54k/*.calls.txt)
 do 
-  echo "Counting SNPs in $file"
-  echo -n -e "$file\tNum SNPs\t$(grep AX-[[:digit:]]* $file | cut -f 1 | wc -l)\n" >> affymetrix_headers
+  if [ $(grep -q $file affymetrix_headers)==0 ]
+  then
+    echo "Skipping SNP count for "$file", already in affymetrix_headers"
+  else
+    echo "Counting SNPs in $file"
+    echo -n -e "$file\tNum SNPs\t$(grep AX-[[:digit:]]* $file | cut -f 1 | wc -l)\n" >> affymetrix_headers
+  fi
 done
 
 grep probeset affymetrix54k/*.calls.txt | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
