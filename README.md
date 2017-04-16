@@ -243,13 +243,19 @@ for chip in affymetrix25k illumina54k_v1 illumina54k_v2 illumina777k affymetrix5
 do
     for file in $(grep $chip $idmap | cut -f 2 | uniq)
     do
-        grep "$file.*Remove" $idmap | gawk '{print "F0\t"$3}' | sort |uniq > updates/$file.remove 
-        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print "F0\t"$3"\t"F"\t"$4}' | sort | uniq > updates/$file.ids
-        plink --cow --bfile plink_bin/$file --remove updates/$file.remove --update-ids updates/$file.ids --make-bed --out plink_bin_updateid/$file
-        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$5"\t"$6}' | sort | uniq > updates/$file.parents
-        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$8}' | sort | uniq > updates/$file.sex
-        plink --cow --bfile plink_bin_updateid/$file --update-parents updates/$file.parents --update-sex updates/$file.sex --make-bed --out plink_bin_updateped/$file
-	plink --cow --bfile plink_bin_updateped/$file --hardy --missing --het --freqx --nonfounders --out plink_bin_reports/$file
+        plinkbin=plink_bin_updateped/$(basename $file)
+        if [[ -e $plinkbin".bed" && -e $plinkbin".bim" && -e $plinkbin".fam" ]]
+        then
+            echo "Skipping pedigree update of: "$(basename $file)", plink binaries exist: "$binfile".bim/.bed/.fam"
+        else
+            grep "$file.*Remove" $idmap | gawk '{print "F0\t"$3}' | sort |uniq > updates/$file.remove
+            grep "$file.*Impute" $idmap | gawk -v F="$file" '{print "F0\t"$3"\t"F"\t"$4}' | sort | uniq > updates/$file.ids
+            plink --cow --bfile plink_bin/$file --remove updates/$file.remove --update-ids updates/$file.ids --make-bed --out plink_bin_updateid/$file
+            grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$5"\t"$6}' | sort | uniq > updates/$file.parents
+            grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$8}' | sort | uniq > updates/$file.sex
+            plink --cow --bfile plink_bin_updateid/$file --update-parents updates/$file.parents --update-sex updates/$file.sex --make-bed --out plink_bin_updateped/$file
+	    plink --cow --bfile plink_bin_updateped/$file --hardy --missing --het --freqx --nonfounders --out plink_bin_reports/$file
+        fi
     done
 done
 
