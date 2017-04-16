@@ -280,8 +280,8 @@ cd genotype_data
 mkdir -p plink_merged_chip
 for chip in affymetrix25k illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
-    grep $chip ../genotype_rawdata/illumina_formats | cut -f 1 | sed s/$chip/plink_bin/g | sed s/collections//g > $chip.files
-    grep $chip ../genotype_rawdata/affymetrix_headers | cut -f 1 | sort | uniq | sed s/$chip/plink_bin/g >> $chip.files
+    grep $chip ../genotype_rawdata/illumina_formats | cut -f 1 | sed s/$chip/plink_bin_updateped/g | sed s/collections//g > $chip.files
+    grep $chip ../genotype_rawdata/affymetrix_headers | cut -f 1 | sort | uniq | sed s/$chip/plink_bin_updateped/g >> $chip.files
     tail -n +1 $chip.files > $chip.merge
     plink --cow --bfile $(head -1 $chip.files) --merge-list $chip.merge --out plink_merged_chip/$chip
 done
