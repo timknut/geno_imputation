@@ -9,6 +9,8 @@ This repo will also showcase the simple workflow one need to implement to impute
 
 [Shapeit](https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.html)
 
+[findhap](https://aipl.arsusda.gov/software/findhap/) [Ref](https://www.ncbi.nlm.nih.gov/pubmed/26168789)
+
 ## 2do
 * Link to relevant raw data for testing. Tim suggests Affy 50k, Illumina HD 777k and the 153 full sequence data set.
 * Implement: basic QC and cleaning pipeline. 
