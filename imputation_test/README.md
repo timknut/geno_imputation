@@ -3,7 +3,8 @@ This repo will document and serve as code base for testing imputation accuracy o
 This repo will also showcase the simple workflow one need to implement to impute with mentioned software and data formats.
 
 ## Links
-[minimac3](http://genome.sph.umich.edu/wiki/Minimac3)
+### Imputation
+[minimac3](http://genome.sph.umich.edu/wiki/Minimac3)j
 
 [Beagle4.1](https://faculty.washington.edu/browning/beagle/beagle.html)
 
@@ -11,7 +12,7 @@ This repo will also showcase the simple workflow one need to implement to impute
 
 [findhap](https://aipl.arsusda.gov/software/findhap/) from this [paper](https://www.ncbi.nlm.nih.gov/pubmed/26168789)
 
-Better measure of accuracy, see [this paper](https://www.ncbi.nlm.nih.gov/pubmed/25045914)
+Better measure of imputation accuracy, see [this paper](https://www.ncbi.nlm.nih.gov/pubmed/25045914)
 
 ## 2do
 * Link to relevant raw data for testing. Tim suggests Affy 50k, Illumina HD 777k and the 153 full sequence data set.
