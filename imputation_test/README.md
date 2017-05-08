@@ -3,15 +3,21 @@ This repo will document and serve as code base for testing imputation accuracy o
 This repo will also showcase the simple workflow one need to implement to impute with mentioned software and data formats.
 
 ## Links
-### Imputation
+### Imputation/Phasing
 [minimac3](http://genome.sph.umich.edu/wiki/Minimac3)j
 
 [Beagle4.1](https://faculty.washington.edu/browning/beagle/beagle.html)
 
-[Shapeit](https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.html)
-
 [findhap](https://aipl.arsusda.gov/software/findhap/) from this [paper](https://www.ncbi.nlm.nih.gov/pubmed/26168789)
 
+[Alphaimpute](http://www.alphagenes.roslin.ed.ac.uk/alphasuite-softwares/alphaimpute/)
+
+### Phasing
+[Shapeit](https://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.html)
+
+[WhatsHap](https://whatshap.readthedocs.io/en/latest/)
+
+### Accuracy
 Better measure of imputation accuracy, see [this paper](https://www.ncbi.nlm.nih.gov/pubmed/25045914)
 
 ## 2do
