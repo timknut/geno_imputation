@@ -265,9 +265,9 @@ do
 done
 
 ##check for errors and warnings on id updates
-grep -i Error plink_bin_update*/*.log
-grep -i Warning plink_bin_update*/*.log
-grep -i Note plink_bin_update*/*.log
+grep -i Error plink_bin_update*/*.log | head
+grep -i Warning plink_bin_update*/*.log | head
+grep -i Note plink_bin_update*/*.log | head
 
 cd ..
 ```
@@ -283,7 +283,7 @@ do
     grep $chip ../genotype_rawdata/illumina_formats | cut -f 1 | sed s/$chip/plink_bin_updateped/g | sed s/collections//g > $chip.files
     grep $chip ../genotype_rawdata/affymetrix_headers | cut -f 1 | sort | uniq | sed s/$chip/plink_bin_updateped/g >> $chip.files
     tail -n +1 $chip.files > $chip.merge
-    plink --cow --bfile $(head -1 $chip.files) --merge-list $chip.merge --out plink_merged_chip/$chip
+    plink --cow --bfile $(head -1 $chip.files) --merge-list $chip.merge --chr 1-29 --alleleACGT --make-bed --out plink_merged_chip/$chip
 done
 ```
 
