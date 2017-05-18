@@ -6,8 +6,8 @@
 #SBATCH --time=04:00:00
 #SBATCH --account=nn4653k
 
-module load python2
 module load R
+. /usit/abel/u1/gjuvslan/geno/virtenv/bin/activate	#virtualenv with Python 2.7.10 and numpy 1.12.1
 
 cd ..
 pwd=$(pwd)

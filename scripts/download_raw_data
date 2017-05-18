@@ -9,7 +9,9 @@ if [ "$ftpgenonew" != "" ]; then ftpgeno=$ftpgenonew; fi
 mkdir -p $ftpgeno
 cd $ftpgeno
 
+
 echo "Downloading raw genotype data in $ftpgeno"
+time wget -nv -nH -r ftp://avlgeno@ftpgeno.geno.no/Dropbox --ask-password
 time wget -nv -nH -r ftp://avlgeno@ftpgeno.geno.no/*Raw_Data_Files --ask-password      	#get genotypes and pedigree files
 cd Raw_Data_Files
 ln -s affy_raw/* .

@@ -66,7 +66,8 @@ fi
 # Code to from the raw data from ftpgeno.geno.no:/avlgeno/Raw_Data_Files to the common folder tree
 cd genotype_rawdata
 mkdir -p affymetrix25k illumina54k_v1 illumina54k_v2 illumina54k_v2/collections illumina777k affymetrix54k
-ln -s -t affymetrix25k $ftpgeno/Raw_Data_Files/FinalReport_25k.txt
+ln -s -T $ftpgeno/Dropbox/affy25k/plink_txt/affy25K_flipped2_affy50K.txt affymetrix25k/FinalReport_25k.txt
+ln -s -t marker_mapfiles $ftpgeno/Dropbox/affy25k/plink_ped/affy25K_flipped2_affy50K.map
 ln -s -t illumina54k_v1 $ftpgeno/Raw_Data_Files/FinalReport_54kV1*
 ln -s -t illumina54k_v2 $ftpgeno/Raw_Data_Files/FinalReport_54kV2*
 ln -s -t illumina54k_v2/ $ftpgeno/Raw_Data_Files/Nordic_54k*
@@ -113,8 +114,13 @@ sed -i -e s/:#%/\\t/g -e s/affymetrix-algorithm-param-apt-//g -e s/=/\\t/ tmp
 sed -e s/time-str/Date/g -e s/opt-chip-type/Chip/g -e s/opt-cel-count/Nsamples/g tmp > affymetrix_headers
 for file in $(ls affymetrix54k/*.calls.txt)
 do 
-  echo "Counting SNPs in $file"
-  echo -n -e "$file\tNum SNPs\t$(grep AX-[[:digit:]]* $file | cut -f 1 | wc -l)\n" >> affymetrix_headers
+  if [ $(grep -q $file affymetrix_headers)==0 ]
+  then
+    echo "Skipping SNP count for "$file", already in affymetrix_headers"
+  else
+    echo "Counting SNPs in $file"
+    echo -n -e "$file\tNum SNPs\t$(grep AX-[[:digit:]]* $file | cut -f 1 | wc -l)\n" >> affymetrix_headers
+  fi
 done
 
 grep probeset affymetrix54k/*.calls.txt | awk '{for (i=2; i<=NF; i++) print $1"\t"$i}' > tmp
@@ -173,7 +179,7 @@ do
     fi
 done
 ```
-### Illumina
+### Illumina & Affymetrix 25K files
 
 Use ioSNP.py to convert all Finalreport files.
 
@@ -182,7 +188,7 @@ snptranslatepath=/mnt/users/gjuvslan/geno/snptranslate/
 export PATH=$PATH:$snptranslatepath
 
 ## Assign marker position maps for each chip
-declare -A markermap=([illumina54k_v1]=illumina50Kv1_annotationfile_umd3_1.map [illumina54k_v2]=illumina50Kv2_annotationfile_umd3_1.map [illumina777k]=illumina777K_annotationfile_umd3_1.map)
+declare -A markermap=([illumina54k_v1]=illumina50Kv1_annotationfile_umd3_1.map [illumina54k_v2]=illumina50Kv2_annotationfile_umd3_1.map [illumina777k]=illumina777K_annotationfile_umd3_1.map [affymetrix25k]=affy25K_flipped2_affy50K.map)
 
 ## Loop over chips and convert all genotype report files to .ped format 
 for chip in "${!markermap[@]}"
@@ -206,7 +212,7 @@ done
 
 ```bash
 # convert all .ped and .map files to Plink binary files
-for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
+for chip in affymetrix25k illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
     for file in `grep -h $chip genotype_rawdata/illumina_formats genotype_rawdata/affymetrix_headers | gawk '{print $1}' | sort | uniq`
     do
@@ -238,24 +244,30 @@ cd genotype_data
 ## per File id mapping (remove, update ids, update pedigree, update sex)
 idmap=$ftpgeno/Id_Raw_Data_Files/ped_genoid_all.txt
 mkdir -p plink_bin_updateid plink_bin_updateped updates plink_bin_reports
-for chip in illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
+for chip in affymetrix25k illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
     for file in $(grep $chip $idmap | cut -f 2 | uniq)
     do
-        grep "$file.*Remove" $idmap | gawk '{print "F0\t"$3}' | sort |uniq > updates/$file.remove 
-        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print "F0\t"$3"\t"F"\t"$4}' | sort | uniq > updates/$file.ids
-        plink --cow --bfile plink_bin/$file --remove updates/$file.remove --update-ids updates/$file.ids --make-bed --out plink_bin_updateid/$file
-        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$5"\t"$6}' | sort | uniq > updates/$file.parents
-        grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$8}' | sort | uniq > updates/$file.sex
-        plink --cow --bfile plink_bin_updateid/$file --update-parents updates/$file.parents --update-sex updates/$file.sex --make-bed --out plink_bin_updateped/$file
-	plink --cow --bfile plink_bin_updateped/$file --hardy --missing --het --freqx --nonfounders --out plink_bin_reports/$file
+        plinkbin=plink_bin_updateped/$(basename $file)
+        if [[ -e $plinkbin".bed" && -e $plinkbin".bim" && -e $plinkbin".fam" ]]
+        then
+            echo "Skipping pedigree update of: "$(basename $file)", plink binaries exist: "$binfile".bim/.bed/.fam"
+        else
+            grep "$file.*Remove" $idmap | gawk '{print "F0\t"$3}' | sort |uniq > updates/$file.remove
+            grep "$file.*Impute" $idmap | gawk -v F="$file" '{print "F0\t"$3"\t"F"\t"$4}' | sort | uniq > updates/$file.ids
+            plink --cow --bfile plink_bin/$file --remove updates/$file.remove --update-ids updates/$file.ids --make-bed --out plink_bin_updateid/$file
+            grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$5"\t"$6}' | sort | uniq > updates/$file.parents
+            grep "$file.*Impute" $idmap | gawk -v F="$file" '{print F"\t"$4"\t"$8}' | sort | uniq > updates/$file.sex
+            plink --cow --bfile plink_bin_updateid/$file --update-parents updates/$file.parents --update-sex updates/$file.sex --make-bed --out plink_bin_updateped/$file
+	    plink --cow --bfile plink_bin_updateped/$file --hardy --missing --het --freqx --nonfounders --out plink_bin_reports/$file
+        fi
     done
 done
 
 ##check for errors and warnings on id updates
-grep -i Error plink_bin_update*/*.log
-grep -i Warning plink_bin_update*/*.log
-grep -i Note plink_bin_update*/*.log
+grep -i Error plink_bin_update*/*.log | head
+grep -i Warning plink_bin_update*/*.log | head
+grep -i Note plink_bin_update*/*.log | head
 
 cd ..
 ```
@@ -268,10 +280,10 @@ cd genotype_data
 mkdir -p plink_merged_chip
 for chip in affymetrix25k illumina54k_v1 illumina54k_v2 illumina777k affymetrix54k
 do
-    grep $chip ../genotype_rawdata/illumina_formats | cut -f 1 | sed s/$chip/plink_bin/g | sed s/collections//g > $chip.files
-    grep $chip ../genotype_rawdata/affymetrix_headers | cut -f 1 | sort | uniq | sed s/$chip/plink_bin/g >> $chip.files
+    grep $chip ../genotype_rawdata/illumina_formats | cut -f 1 | sed s/$chip/plink_bin_updateped/g | sed s/collections//g > $chip.files
+    grep $chip ../genotype_rawdata/affymetrix_headers | cut -f 1 | sort | uniq | sed s/$chip/plink_bin_updateped/g >> $chip.files
     tail -n +1 $chip.files > $chip.merge
-    plink --cow --bfile $(head -1 $chip.files) --merge-list $chip.merge --out plink_merged_chip/$chip
+    plink --cow --bfile $(head -1 $chip.files) --merge-list $chip.merge --chr 1-29 --alleleACGT --make-bed --out plink_merged_chip/$chip
 done
 ```
 
