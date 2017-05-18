@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(data.table)
 library(ggplot2)
 library(DT)
+prefix<-sub('/genotype_rawdata/marker_mapfiles/snpchimp','',getwd())
 ```
 
 # Getting the data
@@ -84,15 +85,52 @@ p <- p + ggtitle('SNPs where snpchimp chromosome differ \n between Native and UM
 p + facet_wrap(~chip_name,nrow=2) + theme(legend.justification=c(1,0), legend.position=c(1,0))
 ```
 
+## Compare to Tim's list of 
+
+Tim found 668 SNPs very hard ot impute (using Beagle?), he suspect wrong positioning/assembly fail. It that is the case then we might see that these 668 SNPs have changed positions from Native to UMD3.1. 
+
+```{r affy50k_fail}
+#read in list of 668 SNPs that Tim found very hard ot impute, he suspect wrong positioning/assembly fail
+affy50k_assembly_fail <- fread(paste(prefix,'ftpgeno/Dropbox/affy50k/50k_markers_assembly_fail_2_remove.txt',sep="/"),header=F)$V1
+
+#look up these 668 SNPs on Illumina HD chip, see how many have changed position
+both[SNP_name %in% affy50k_assembly_fail & chip_name=='Bov_IlluHD']
+both[SNP_name %in% affy50k_assembly_fail & chip_name=='Bov_IlluHD' & pos.nat!=pos.umd]
+
+```
+
+* These hard-to-impute SNPs does not seem to have been hard to position.
+* Possible followups: Do they cluster or disperse randomly on the genome (seem to cluster at least some), contig/scaffold lengths, new BTAU5 assembly?
+* We should try to impute them with alphaimpute and see if they are still hard
+
 # SNPs that might need flipping of alleles
 
-The ANPchimp data also give an easy way to identify the SNPs that will be flipped if the wrong allel-coding is used during file conversion.
+The SNPchimp data also give an easy way to identify the SNPs that will be flipped if the wrong allel-coding is used during file conversion.
 
 ```{r flip_alleles}
 umd[,flip:=Alleles_A_B_FORWARD!=Alleles_A_B_TOP,by=SNP_name]
 umd[,.N,by=c('chip_name','flip')]
 
 ```
+
+## Comparison to flip lists
+
+```{bash plink_flip}
+plink --cow --bfile affymetrix54k --freq --nonfounders --out affymetrix54k    #MAF for affy50K
+plink --cow --bfile illumina54k_v2 --freq --nonfounders --out illumina54k_v2  #MAF for illumina50Kv2
+plink --cow --bfile affymetrix54k --bmerge illumina54k_v2 --out illumina50Kv2_affy50k #flip list from Plink, NB! warning
+
+```
+
+```{r flip_alleles_compare}
+flip50k <- fread(paste(prefix,'ftpgeno/Dropbox/illumina50k/illumina_50k_markers_to_flip_2_forward_strand.txt',sep="/"),header=F)
+flip50k_fail <- fread(paste(prefix,'ftpgeno/Dropbox/illumina50k/illumina_50k_failed_fliptest_to_remove.txt',sep="/"),header=F)
+fliplist50k <- rbind(cbind(flip50k,'FLIP'),cbind(flip50k_fail,'FLIP_FAIL'))
+
+
+
+```
+
 
 # Summary / TODOs
 
