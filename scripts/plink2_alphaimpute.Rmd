@@ -16,7 +16,7 @@ for i in {1..29} ; do
 	tail -n +2 chr${i}.raw > file_flipped
 	cut -f 7- -d ' ' file_flipped > SNPs
 	cut -f2 -d ' ' file_flipped > ID
-	sed -i -e "s/[[:<:]]NA[[:>:]]/9/g" SNPs
+	sed -i -e "s/\bNA\b/9/g" SNPs
 	paste -d ' ' ID SNPs > ch${i}_coded
 	rm ID SNPs file_flipped SNPs-e
 done
